@@ -4,7 +4,7 @@
 
 -----
 
-** Personal Study Use Only, 仅供个人学习使用。**
+**Personal Study Use Only, 仅供个人学习使用。**
 
 -----
 
