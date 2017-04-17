@@ -72,7 +72,7 @@ JS是*解释*型语言，因为你的JS源代码每次运行时被处理，但�
 
 本章将会以小段代码来介绍每一个编程概念。强调一下：当你翻阅本章时（你可能会多次翻阅），你应该动手练习每一个概念，最简单的方式就是打开浏览器的开发者模式，使用console窗口。
 
-**提示：** 通常，你可以通过按下快捷键或点击一个菜单来启动开发者console，了解更多如何在浏览器中使用console，参考"Mastering The Developer Tools Console" (http://blog.teamtreehouse.com/mastering-developer-tools-console)。为了多行输入，可以按下 `<shift> + <enter>`，一旦按下了`<enter>`，console会执行你输入的所有东西。
+**提示：** 通常，你可以通过按下快捷键或点击一个菜单来启动开发者console，了解更多如何在浏览器中使用console，参考"Mastering The Developer Tools Console" (http://blog.teamtreehouse.com/mastering-developer-tools-console) 。为了多行输入，可以按下 `<shift> + <enter>`，一旦按下了`<enter>`，console会执行你输入的所有东西。
 
 让我们熟悉一下在console中执行代码，首先，建议在浏览器中打开一个新的标签（快捷键一般是`<ctrl> + <T>`，或者在地址栏输入`about:blank`），然后打开console（快捷键一般是`F12`），输入如下代码：
 
