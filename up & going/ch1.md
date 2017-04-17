@@ -11,11 +11,11 @@
 
 如果你已经熟悉JS，首先阅读第3章，直接翻到*YDKJS大法*中你感兴趣的章节。
 
-## Code
+## Code（代码）
 
 一个程序，是一个告诉计算机完成什么任务的特殊指令集合，也被称作*源代码*或者*代码*。通常代码被保存在文本文件中，但JS可以直接在浏览器的console中输入（后面会讲到）。有效格式和指令结合的规则称为*计算机语言*，也称为*语法*，和汉语告诉你字词来造句然后写文章什么的差不多。
 
-### Statements
+### Statements（语句）
 
 在计算机语言中，由词、数字和操作符组成的完成一个具体任务的群体称为*语句*，在JS中，一条语句可能如下所示：
 
@@ -30,7 +30,7 @@ The `=` and `*` characters are *operators* (see "Operators") -- they perform act
 
 `=`和`*`是*操作符*，它们表示值和变量之间的行为，比如赋值、乘法。大多数JS语句以`;`结束。`a = b * 2;`告诉计算机：获取变量`b`当前存储的值，乘以值`2`，然后将计算结果保存在另一个叫`a`的变量中。程序就是这些语句的集合，它们一起描述实现程序目的的所有步骤。
 
-### Expressions
+### Expressions（表达式）
 
 语句由一个或多个*表达式*组成，一个表达式可以是对变量、值得引用，或者变量与值通过操作符的集合。比如：
 
@@ -58,7 +58,7 @@ b * 2;
 alert( a );
 ```
 
-### Executing a Program
+### Executing a Program（执行程序）
 
 这些编程语句的集合是如何告诉计算机该做什么的？程序需要被*执行*，也叫*运行程序*。像`a = b * 2`这样的语句，对开发人员来说读写很方便，但是并不是计算机可以直接理解的形式，所以在计算机上一个特殊的工具（*编译器*或*解释器*）被用来将你写的代码翻译成计算机可以理解的指令。
 
@@ -68,7 +68,7 @@ JS是*解释*型语言，因为你的JS源代码每次运行时被处理，但�
 
 **注意：** 了解更多关于JS的编译知识，阅读系列中名为*Scope & Closures*的前两章。
 
-## Try It Yourself
+## Try It Yourself（动手）
 
 本章将会以小段代码来介绍每一个编程概念。强调一下：当你翻阅本章时（你可能会多次翻阅），你应该动手练习每一个概念，最简单的方式就是打开浏览器的开发者模式，使用console窗口。
 
@@ -88,7 +88,7 @@ Chrome浏览器中的运行结果如下:
 
 嗯，不错继续练习吧，学习编程的最好方式就是开始写代码！
 
-### Output
+### Output（输出）
 
 在前一个代码片段中我们使用了 `console.log(..)`，我们来看下它是什么意思。你可能已经猜到了，它正是在console下打印文本（也称为*输出*给用户），该语句有两点要解释一下：
 
@@ -104,7 +104,7 @@ alert( b );
 
 执行后你会发现，它并不是将结果打印在console里，而是弹出内容是`b`的值的确认对话框，然而，使用`console.log(..)`更方便一些，因为你可以一次性输出很多值，而且不会像`alert(..)`那样中断浏览器的交互。
 
-### Input
+### Input（输入）
 
 当我们讨论输出时，你可能好奇*输入*（即从用户那里获取信息）。最常见的方式就是通过HTML页面上的用户可以输入的表格元素（比如文本框），使用JS将这些值读取到你的程序中的变量里。
 
@@ -126,28 +126,21 @@ console.log( age );
 
 简单起见，在我们学习基础编程概念时，本书的示例不会需要输入。
 
-## Operators
+## Operators（操作符）
 
-Operators are how we perform actions on variables and values. We've already seen two JavaScript operators, the `=` and the `*`.
+操作符代表在变量和值之间执行某个操作，我们已经见过JS的两个操作符：`=`和`*`。 `*` 操作符代表数学乘法，操作符`=`用于*赋值*，首先计算`=`右边的值（源值），然后将它存储到左边的变量（目标变量值）中。
 
-The `*` operator performs mathematic multiplication. Simple enough, right?
+**注意：** 这看起来似乎和一般的赋值顺序是相反的，有些人可能更习惯使用如`42 -> a`（这不是有效的JS！）这样的源值在左目标变量在右方式，而不是`a = 42`。然而，`a = 42`类似的表示，在现代编程语言中很流行，所以，如果你感觉不自然，花些时间来练习直到习惯它吧。
 
-The `=` equals operator is used for *assignment* -- we first calculate the value on the *right-hand side* (source value) of the `=` and then put it into the variable that we specify on the *left-hand side* (target variable).
-
-**Warning:** This may seem like a strange reverse order to specify assignment. Instead of `a = 42`, some might prefer to flip the order so the source value is on the left and the target variable is on the right, like `42 -> a` (this is not valid JavaScript!). Unfortunately, the `a = 42` ordered form, and similar variations, is quite prevalent in modern programming languages. If it feels unnatural, just spend some time rehearsing that ordering in your mind to get accustomed to it.
-
-Consider:
+思考:
 
 ```js
 a = 2;
 b = a + 1;
 ```
 
-Here, we assign the `2` value to the `a` variable. Then, we get the value of the `a` variable (still `2`), add `1` to it resulting in the value `3`, then store that value in the `b` variable.
-
-While not technically an operator, you'll need the keyword `var` in every program, as it's the primary way you *declare* (aka *create*) *var*iables (see "Variables").
-
-You should always declare the variable by name before you use it. But you only need to declare a variable once for each *scope* (see "Scope"); it can be used as many times after that as needed. For example:
+这里，将`2`赋值给`a`，然后获取`a`的值，加`1`，得到结果`3`，然后将它存储到变量`b`中。
+`var`虽然不是操作符，但是在每个程序中都需要关键字`var`，因为它是你*声明*变量（详见Variables）的主要方式。你应该在使用变量之前声明它的名字，但是在同一个*作用域*（详见Scope）只需要声明一次，之后可以按需使用多次，比如：
 
 ```js
 var a = 20;
@@ -158,46 +151,40 @@ a = a * 2;
 console.log( a );	// 42
 ```
 
-Here are some of the most common operators in JavaScript:
+以下是JS中常见的操作符:
 
-* Assignment: `=` as in `a = 2`.
-* Math: `+` (addition), `-` (subtraction), `*` (multiplication), and `/` (division), as in `a * 3`.
-* Compound Assignment: `+=`, `-=`, `*=`, and `/=` are compound operators that combine a math operation with assignment, as in `a += 2` (same as `a = a + 2`).
-* Increment/Decrement: `++` (increment), `--` (decrement), as in `a++` (similar to `a = a + 1`).
-* Object Property Access: `.` as in `console.log()`.
+* 赋值：`=` 比如：`a = 2` 。
+* 计算：`+` (加)、 `-` (减)、`*` (乘)、`/` (除)，如`a * 2`。
+* 复合赋值：`+=`、`-=`、`*=`、`/=` 都是结合计算和赋值的复合操作符，比如`a += 2`等价于`a = a + 2`。
+* 自增/减：`++` (自增), `--` (自减)，比如`a++` 等价于`a = a + 1`。
+* 对象属性获取：`.` 如 `console.log()`。
 
-   Objects are values that hold other values at specific named locations called properties. `obj.a` means an object value called `obj` with a property of the name `a`. Properties can alternatively be accessed as `obj["a"]`. See Chapter 2.
-* Equality: `==` (loose-equals), `===` (strict-equals), `!=` (loose not-equals), `!==` (strict not-equals), as in `a == b`.
+   对象是指在特殊命名位置（属性）的保存其它值的值，`obj.a`表示一个叫`obj`的对象值的一个叫`a`的属性，也可以通过`obj["a"]`访问属性，详见第二章。
+* 相等: `==` 宽松等于，`===` 严格等于，`!=` 宽松不等于，`!==` 严格不等于，比如`a == b`。
 
-   See "Values & Types" and Chapter 2.
-* Comparison: `<` (less than), `>` (greater than), `<=` (less than or loose-equals), `>=` (greater than or loose-equals), as in `a <= b`.
+   详见"Values & Types"和第二章。
+* 大小: `<` 小于, `>` 大于, `<=` 小于等于, `>=` 大于等于，比如`a <= b`。
 
-   See "Values & Types" and Chapter 2.
-* Logical: `&&` (and), `||` (or), as in `a || b` that selects either `a` *or* `b`.
+   详见"Values & Types"和第二章。
+* 逻辑: `&&` 与, `||` 或, 比如`a || b` 选择 `a` *或* `b`。
 
-   These operators are used to express compound conditionals (see "Conditionals"), like if either `a` *or* `b` is true.
+   这些操作符用于表示复合条件（见"Conditionals"），比如是否`a` *或* `b` 为真。
 
-**Note:** For much more detail, and coverage of operators not mentioned here, see the Mozilla Developer Network (MDN)'s "Expressions and Operators" (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators).
+**注意:** 了解更详细知识或以上未提及操作符，参考Mozilla Developer Network (MDN)'s "Expressions and Operators" (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators) 。
 
-## Values & Types
+## Values & Types（值和类型）
 
-If you ask an employee at a phone store how much a certain phone costs, and they say "ninety-nine, ninety-nine" (i.e., $99.99), they're giving you an actual numeric dollar figure that represents what you'll need to pay (plus taxes) to buy it. If you want to buy two of those phones, you can easily do the mental math to double that value to get $199.98 for your base cost.
+当你在一个手机店铺询问店员某个手机多少钱时，他们回答“1999”（即￥1999），他们给你一个你需要支付的真实的人民币数值。如果你想要买2个，你可以很容易新算出需要花费“￥3998”。如果那个店员拿起另一部相同的手机却说它是“免费”的（可能是加了双引号的），他们没有明确的给你一个数字，而是另一种你知道花费是"￥0"的表达——“免费”。当你又问手机是否包含充电器，答案可能只是“是”或“否”。
 
-If that same employee picks up another similar phone but says it's "free" (perhaps with air quotes), they're not giving you a number, but instead another kind of representation of your expected cost ($0.00) -- the word "free."
+同样的，当你在程序中表达一个值时，你可以根据它们的用途而选择不同的表述，这些值得不同表述在编程术语中称为*类型*，JS有针对这些*原*值的内置类型：
 
-When you later ask if the phone includes a charger, that answer could only have been either "yes" or "no."
+* 当你需要做计算时，你需要`number`。
+* 当你需要打印值到屏幕上时，你需要`string` （一个或多个字符，单词，句子）。
+* 当你需要在程序中做判断时，你需要`boolean` (`true` 或 `false`)。
 
-In very similar ways, when you express values in a program, you choose different representations for those values based on what you plan to do with them.
+直接包含在源代码中的值被称为*字面值*，`string`字面值由单引号(`'...'`)或双引号(`"..."`)包裹（两者没有区别），`number`和`boolean`字面值以其本身表现（即如：`42` `true`等）。
 
-These different representations for values are called *types* in programming terminology. JavaScript has built-in types for each of these so called *primitive* values:
-
-* When you need to do math, you want a `number`.
-* When you need to print a value on the screen, you need a `string` (one or more characters, words, sentences).
-* When you need to make a decision in your program, you need a `boolean` (`true` or `false`).
-
-Values that are included directly in the source code are called *literals*. `string` literals are surrounded by double quotes `"..."` or single quotes (`'...'`) -- the only difference is stylistic preference. `number` and `boolean` literals are just presented as is (i.e., `42`, `true`, etc.).
-
-Consider:
+示例:
 
 ```js
 "I am a string";
@@ -209,13 +196,13 @@ true;
 false;
 ```
 
-Beyond `string`/`number`/`boolean` value types, it's common for programming languages to provide *arrays*, *objects*, *functions*, and more. We'll cover much more about values and types throughout this chapter and the next.
+除了 `string`/`number`/`boolean` 类型，编程语言还有比较常用的类型，如*arrays*, *objects*, *functions*等，通过本章和下一章的学习你会了解更多。
 
-### Converting Between Types
+### Converting Between Types（类型转换）
 
 If you have a `number` but need to print it on the screen, you need to convert the value to a `string`, and in JavaScript this conversion is called "coercion." Similarly, if someone enters a series of numeric characters into a form on an ecommerce page, that's a `string`, but if you need to then use that value to do math operations, you need to *coerce* it to a `number`.
-
-JavaScript provides several different facilities for forcibly coercing between *types*. For example:
+如果想输出`number`到屏幕，你需要将其转换为`string`，在JS中，这种转换叫做"强制转换"（简称“强转”），同样的，从网页输入的一串数字字符是`string`，但是如果想要进行数学运算，你需要将它*强转*为`number`。
+JS为*类型*之间的强制转换提供很多便利方式，比如：
 
 ```js
 var a = "42";
@@ -225,64 +212,42 @@ console.log( a );	// "42"
 console.log( b );	// 42
 ```
 
-Using `Number(..)` (a built-in function) as shown is an *explicit* coercion from any other type to the `number` type. That should be pretty straightforward.
+使用 `Number(..)` (一个内置函数)如上示例是将任意类型*显式*强转为`number`类型，这很简单粗暴，但是当需要比较两个不同类型的值时，会存在一个争议问题（统一转到到哪个类型再比较？），这时需要*隐式*强转，比如：当比较字符串`"99.99"`和数字`99.99`时，大家普遍认为它们应该相等，但是它们严格来说并不一样是吧。这是同一个值得两种不同的表述（两种不同*类型*），你可以说它们是“宽松相等的”，为了帮助你解决这种情况，JS提供了*隐式*强转将值转为匹配的类型。如果你使用了宽松等于操作符`==`来比较`"99.99" == 99.99`，JS会将左边的`"99.99"`转为`number`，比较结果是`true`。
 
-But a controversial topic is what happens when you try to compare two values that are not already of the same type, which would require *implicit* coercion.
+尽管这样设计帮助你解决了上述问题，但是当你没有花时间去学习这些控制其行为的规则时，隐式强转会让你产生困惑，很多JS开发人员就是这样，所以公认隐式强转是令人迷惑的会因为预料外的bugs破坏程序，所以应该被避免使用，有时甚至认为它是该语言的设计缺陷。隐式强转是一种对任何想要严肃对待JS编程的人来说*可以学*且*应该被学*的机制，不仅仅是当你学习了它的规则后不再疑惑，而是它可以让你编程的更好，你的值得拥有！
 
-When comparing the string `"99.99"` to the number `99.99`, most people would agree they are equivalent. But they're not exactly the same, are they? It's the same value in two different representations, two different *types*. You could say they're "loosely equal," couldn't you?
+**注意:** 关于强转详见第二章和卷*Types & Grammar*的第四章。
 
-To help you out in these common situations, JavaScript will sometimes kick in and *implicitly* coerce values to the matching types.
+## Code Comments（代码注释）
 
-So if you use the `==` loose equals operator to make the comparison `"99.99" == 99.99`, JavaScript will convert the left-hand side `"99.99"` to its `number` equivalent `99.99`. The comparison then becomes `99.99 == 99.99`, which is of course `true`.
+手机卖店的店员可能会略记下新发布的手机的特性或他们公司提供的新套餐，这些笔记只给店员用的（不是给顾客阅读的），通过编排出她应该告诉顾客hows和whys，这些笔记帮助店员更好的工作。学习写代码中最重要课程之一就是，写代码不仅仅给计算机，也同样是给其它开发人员的。
 
-While designed to help you, implicit coercion can create confusion if you haven't taken the time to learn the rules that govern its behavior. Most JS developers never have, so the common feeling is that implicit coercion is confusing and harms programs with unexpected bugs, and should thus be avoided. It's even sometimes called a flaw in the design of the language.
+计算机只关心一串串*编译*而来的二进制机器代码，你可以写出几乎无限种生成同样的01序列的程序，你如何写代码不仅仅对你，对你的团队其它人员以及未来的你同样重要。你不应该只是把代码写到功能正确，更要写到当被审阅时有意义，在选择好的变量（参考“Variales”)和函数（参见“Functions”）命名的努力中，你可以走的更远。
 
-However, implicit coercion is a mechanism that *can be learned*, and moreover *should be learned* by anyone wishing to take JavaScript programming seriously. Not only is it not confusing once you learn the rules, it can actually make your programs better! The effort is well worth it.
+一个很重要的部分就是代码注释，它是插入到程序中的一段只给人类看的解释文本，编译器会忽略这些注释。有很多关于关于良好注释代码的观点，我们无法定义一个绝对的通用规则，但是一些调查报告和指导方针很有用：
 
-**Note:** For more information on coercion, see Chapter 2 of this title and Chapter 4 of the *Types & Grammar* title of this series.
+* 没有注释的代码是次优的。
+* 多度注释（比如一行代码一行注释）可能意味着低质量代码。
+* 注释应该解释代码*why*，而不是*what*，当代码特别让人迷惑时注释可以选择性的解释*how*。
 
-## Code Comments
-
-The phone store employee might jot down some notes on the features of a newly released phone or on the new plans her company offers. These notes are only for the employee -- they're not for customers to read. Nevertheless, these notes help the employee do her job better by documenting the hows and whys of what she should tell customers.
-
-One of the most important lessons you can learn about writing code is that it's not just for the computer. Code is every bit as much, if not more, for the developer as it is for the compiler.
-
-Your computer only cares about machine code, a series of binary 0s and 1s, that comes from *compilation*. There's a nearly infinite number of programs you could write that yield the same series of 0s and 1s. The choices you make about how to write your program matter -- not only to you, but to your other team members and even to your future self.
-
-You should strive not just to write programs that work correctly, but programs that make sense when examined. You can go a long way in that effort by choosing good names for your variables (see "Variables") and functions (see "Functions").
-
-But another important part is code comments. These are bits of text in your program that are inserted purely to explain things to a human. The interpreter/compiler will always ignore these comments.
-
-There are lots of opinions on what makes well-commented code; we can't really define absolute universal rules. But some observations and guidelines are quite useful:
-
-* Code without comments is suboptimal.
-* Too many comments (one per line, for example) is probably a sign of poorly written code.
-* Comments should explain *why*, not *what*. They can optionally explain *how* if that's particularly confusing.
-
-In JavaScript, there are two types of comments possible: a single-line comment and a multiline comment.
-
-Consider:
+JS中，有两种注释方式：单行注释、块注释。如:
 
 ```js
 // This is a single-line comment
 
 /* But this is
-       a multiline
+       a multiline( i.e. block)
              comment.
                       */
 ```
 
-The `//` single-line comment is appropriate if you're going to put a comment right above a single statement, or even at the end of a line. Everything on the line after the `//` is treated as the comment (and thus ignored by the compiler), all the way to the end of the line. There's no restriction to what can appear inside a single-line comment.
-
-Consider:
+当你在一个语句上或行尾注释时，单行注释`//`就很方便，`//`所在行`//`后面的所有内容都会被当做注释（编译器忽略）:
 
 ```js
 var a = 42;		// 42 is the meaning of life
 ```
 
-The `/* .. */` multiline comment is appropriate if you have several lines worth of explanation to make in your comment.
-
-Here's a common usage of multiline comments:
+当你有多行注释要写时，请使用块注释`/* .. */`，如:
 
 ```js
 /* The following value is used because
@@ -291,7 +256,7 @@ Here's a common usage of multiline comments:
 var a = 42;
 ```
 
-It can also appear anywhere on a line, even in the middle of a line, because the `*/` ends it. For example:
+块注释也可以出现在一行中的任意位置，甚至行内，因为`*/`会结束注释，如：
 
 ```js
 var a = /* arbitrary value */ 42;
@@ -299,9 +264,9 @@ var a = /* arbitrary value */ 42;
 console.log( a );	// 42
 ```
 
-The only thing that cannot appear inside a multiline comment is a `*/`, because that would be interpreted to end the comment.
+块注释中不能出现`*/`,因为它会被解释为注释的结束。
 
-You will definitely want to begin your learning of programming by starting off with the habit of commenting code. Throughout the rest of this chapter, you'll see I use comments to explain things, so do the same in your own practice. Trust me, everyone who reads your code will thank you!
+你肯定在学习编程之初就想要养成注释的好习惯，在后续章节，你会看到我用注释解释一些东西，所以在你的练习中也同样进行，相信我，每一个读你代码的人都会感谢你。
 
 ## Variables
 
