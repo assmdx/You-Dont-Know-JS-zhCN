@@ -13,4 +13,4 @@
 
 ### [Chapter 2: Into JavaScript](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/up%20%26%20going/ch2.md)
 
-### [Chapter 3: Into YDKJS](ch3.md)(https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/up%20%26%20going/ch3.md)
+### [Chapter 3: Into YDKJS](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/up%20%26%20going/ch3.md)
