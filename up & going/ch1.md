@@ -410,17 +410,13 @@ JS定义了一组当被强转时取值为`false`的特殊值，如`0`、`""`。�
 
 除了`if`语句外，还有其它*条件*，比如`swtich`语句，它可以用来简化一系列的`if..else`语句（参考第二章）。循环（参见"Loops"）使用*条件*来决定循环继续还是终止。
 
-**注意:** 想更深入了解*条件*语句的测试表达式（if中的()）中的隐式强转，参见卷*Types & Grammar*的第四章。
+**注意:** 想更深入了解*条件*语句的验证表达式（if中的()）中的隐式强转，参见卷*Types & Grammar*的第四章。
 
 ## Loops（循环）
 
-During busy times, there's a waiting list for customers who need to speak to the phone store employee. While there's still people on that list, she just needs to keep serving the next customer.
+高峰时期，顾客需要排队才能与手机店员讲到话，如果一直有人排队，她就需要继续服务。重复某些个行为直到条件不符合，或者说当条件满足时一直重复，这就是编程中循环的工作，循环可以有不同的形式，但它们都满足这个基本行为。
 
-Repeating a set of actions until a certain condition fails -- in other words, repeating only while the condition holds -- is the job of programming loops; loops can take different forms, but they all satisfy this basic behavior.
-
-A loop includes the test condition as well as a block (typically as `{ .. }`). Each time the loop block executes, that's called an *iteration*.
-
-For example, the `while` loop and the `do..while` loop forms illustrate the concept of repeating a block of statements until a condition no longer evaluates to `true`:
+一个循环包括条件验证和一个块语句（还记得`{ .. }`吧），每一次循环块语句的执行称为一次*迭代*。比如，`while`循环和`do..while`循环表示重复一个块语句知道条件不再等于`true`：
 
 ```js
 while (numOfCustomers > 0) {
@@ -442,19 +438,13 @@ do {
 } while (numOfCustomers > 0);
 ```
 
-The only practical difference between these loops is whether the conditional is tested before the first iteration (`while`) or after the first iteration (`do..while`).
+这两个循环的唯一区别就是在验证条件之前是（`do..while`）否（`while`）先执行一次块语句。当条件验证为`false`时，下一次迭代就不会执行，也就是说，如果条件一开始就是`false`，`while`循环根本不会执行，而`do..while`循环会运行（第）一次。
 
-In either form, if the conditional tests as `false`, the next iteration will not run. That means if the condition is initially `false`, a `while` loop will never run, but a `do..while` loop will run just the first time.
+有时候，你会有意通过一个计数器来进行循环，比如从`0`到`9`（10个数字），你可以通过设置循环变量比如`i`值为`0`并且在每次迭代增加`1`。
 
-Sometimes you are looping for the intended purpose of counting a certain set of numbers, like from `0` to `9` (ten numbers). You can do that by setting a loop iteration variable like `i` at value `0` and incrementing it by `1` each iteration.
+**注意:** 历史问题，几乎所有的编程语言的计数都是从`0`开始，而不是`1`。如果你不熟悉这种思维模式，一开始可能会有困惑，花些时间练习从`0`开始的计数并熟悉它吧！
 
-**Warning:** For a variety of historical reasons, programming languages almost always count things in a zero-based fashion, meaning starting with `0` instead of `1`. If you're not familiar with that mode of thinking, it can be quite confusing at first. Take some time to practice counting starting with `0` to become more comfortable with it!
-
-The conditional is tested on each iteration, much as if there is an implied `if` statement inside the loop.
-
-We can use JavaScript's `break` statement to stop a loop. Also, we can observe that it's awfully easy to create a loop that would otherwise run forever without a `break`ing mechanism.
-
-Let's illustrate:
+条件在每一次迭代都会验证，就好像在循环里有一个隐藏的`if`语句，可以使用JS的`break`语句来停止某个循环，如果没有`break`机制，那么你会发现创建一个永不会停的循环是那么的容易，像这样：
 
 ```js
 var i = 0;
@@ -472,9 +462,9 @@ while (true) {
 // 0 1 2 3 4 5 6 7 8 9
 ```
 
-**Warning:** This is not necessarily a practical form you'd want to use for your loops. It's presented here for illustration purposes only.
+**注意:** 这不是在实际中你想要用到的循环，这里只是为了说明问题。
 
-While a `while` (or `do..while`) can accomplish the task manually, there's another syntactic form called a `for` loop for just that purpose:
+除了`while` (或`do..while`) 可以自动完成任务，还有`for`循环也可以：
 
 ```js
 for (var i = 0; i <= 9; i = i + 1) {
@@ -483,19 +473,17 @@ for (var i = 0; i <= 9; i = i + 1) {
 // 0 1 2 3 4 5 6 7 8 9
 ```
 
-As you can see, in both cases the conditional `i <= 9` is `true` for the first 10 iterations (`i` of values `0` through `9`) of either loop form, but becomes `false` once `i` is value `10`.
+如你所见，两个代码示例中的条件`i <= 9`在前10次迭代中始终为`true`，但是当`i`等于`10`的时候，条件为`false`。
 
-The `for` loop has three clauses: the initialization clause (`var i=0`), the conditional test clause (`i <= 9`), and the update clause (`i = i + 1`). So if you're going to do counting with your loop iterations, `for` is a more compact and often easier form to understand and write.
+`for`循环有三个子句：初始化子句（`var i=0`）、条件验证子句（`i <= 9`）、更新子句（`i = i + 1`）。所以如果你想在循环中计数，`for`循环可能是更好的选择。
 
-There are other specialized loop forms that are intended to iterate over specific values, such as the properties of an object (see Chapter 2) where the implied conditional test is just whether all the properties have been processed. The "loop until a condition fails" concept holds no matter what the form of the loop.
+还有一些为迭代特定值的特殊循环形式，如对象的属性（参见第二章），隐式条件验证是是否所有的属性已经被处理，但无论形式如何变化，“循环直到条件不符”的原理不会变。
 
-## Functions
+## Functions（函数）
 
-The phone store employee probably doesn't carry around a calculator to figure out the taxes and final purchase amount. That's a task she needs to define once and reuse over and over again. Odds are, the company has a checkout register (computer, tablet, etc.) with those "functions" built in.
+手机店店员可能不会随身携带计算器来计算出要缴纳的税以及最终需要支付的金额，这是一个她需要定义一次，然后重复利用的任务，公司有一个结算台（计算机、平板等）有这些“功能”。
 
-Similarly, your program will almost certainly want to break up the code's tasks into reusable pieces, instead of repeatedly repeating yourself repetitiously (pun intended!). The way to do this is to define a `function`.
-
-A function is generally a named section of code that can be "called" by name, and the code inside it will be run each time. Consider:
+类似的，你的程序当然希望把代码的任务划分为可以重复利用的片段，而不是不断的重复再重复，我们称这为`function`，一个函数一般是一段有命名的可以被再次调用的代码，每次调用，函数内的代码就会被执行：
 
 ```js
 function printAmount() {
@@ -511,7 +499,7 @@ amount = amount * 2;
 printAmount(); // "199.98"
 ```
 
-Functions can optionally take arguments (aka parameters) -- values you pass in. And they can also optionally return a value back.
+函数还可以接受参数（你传递给函数的值），函数还可以返回一个值。
 
 ```js
 function printAmount(amt) {
@@ -530,11 +518,9 @@ amount = formatAmount();
 console.log( amount );			// "$99.99"
 ```
 
-The function `printAmount(..)` takes a parameter that we call `amt`. The function `formatAmount()` returns a value. Of course, you can also combine those two techniques in the same function.
+函数`printAmount(..)`接受一个叫`amt`的参数，函数`formatAmount()`返回一个值，当然，你可以将两者同时使用。
 
-Functions are often used for code that you plan to call multiple times, but they can also be useful just to organize related bits of code into named collections, even if you only plan to call them once.
-
-Consider:
+函数经常被用于你想要多次使用的代码，即使是只使用一次，把相关代码放到一个命名的集合里也是很有用的：
 
 ```js
 const TAX_RATE = 0.08;
@@ -554,15 +540,15 @@ amount = calculateFinalPurchaseAmount( amount );
 console.log( amount.toFixed( 2 ) );		// "107.99"
 ```
 
-Although `calculateFinalPurchaseAmount(..)` is only called once, organizing its behavior into a separate named function makes the code that uses its logic (the `amount = calculateFinal...` statement) cleaner. If the function had more statements in it, the benefits would be even more pronounced.
+尽管`calculateFinalPurchaseAmount(..)`只被调用了一次，将它的行为划分到一个命名的函数里，代码看起来逻辑更清晰（`amount = calculateFinal...`语句）。如果函数内有更多语句，那这种优势就更加明显。
 
-### Scope
+### Scope（作用域）
 
-If you ask the phone store employee for a phone model that her store doesn't carry, she will not be able to sell you the phone you want. She only has access to the phones in her store's inventory. You'll have to try another store to see if you can find the phone you're looking for.
+如果你要求手机店店员给你它们专柜不销售的机型，她将无法卖给你，她只能获取到她的店铺中的手机，你可能需要到另一家手机店去寻找你所需要的机型。
 
-Programming has a term for this concept: *scope* (technically called *lexical scope*). In JavaScript, each function gets its own scope. Scope is basically a collection of variables as well as the rules for how those variables are accessed by name. Only code inside that function can access that function's *scoped* variables.
+编程中对这样的概念有个术语叫*作用域*（技术上称*词法范围*），在JS中，每个函数有自己的作用域，作用域是指变量和通过名字如何访问这些变量的规则的集合。只有函数内部代码才可以访问到函数*作用域*内的变量。
 
-A variable name has to be unique within the same scope -- there can't be two different `a` variables sitting right next to each other. But the same variable name `a` could appear in different scopes.
+同一个作用域内变量名必须唯一，不可能存在两个相邻的不同变量`a`，但是同一个名为`a`的变量可以出现在不同的作用域。
 
 ```js
 function one() {
@@ -581,9 +567,7 @@ one();		// 1
 two();		// 2
 ```
 
-Also, a scope can be nested inside another scope, just like if a clown at a birthday party blows up one balloon inside another balloon. If one scope is nested inside another, code inside the innermost scope can access variables from either scope.
-
-Consider:
+而且，作用域可以嵌套于另一个作用域，正如在生日趴的小丑在一个气球里吹出另一个气球，如果一个作用域被嵌套于另一个，最内部的作用域可以访问到外部作用域的变量，如：
 
 ```js
 function outer() {
@@ -605,11 +589,7 @@ function outer() {
 outer();
 ```
 
-Lexical scope rules say that code in one scope can access variables of either that scope or any scope outside of it.
-
-So, code inside the `inner()` function has access to both variables `a` and `b`, but code in `outer()` has access only to `a` -- it cannot access `b` because that variable is only inside `inner()`.
-
-Recall this code snippet from earlier:
+词法范围规则说明作用域内的代码可以访问自身作用域以及任意外部作用域里的变量，所以函数`inner()`内可以访问到变量`a`、`b`，但是`outer()`内只能访问到`a`，无法访问`b`因为该变量位于`inner()`里，回顾前面的一段代码：
 
 ```js
 const TAX_RATE = 0.08;
@@ -623,28 +603,26 @@ function calculateFinalPurchaseAmount(amt) {
 }
 ```
 
-The `TAX_RATE` constant (variable) is accessible from inside the `calculateFinalPurchaseAmount(..)` function, even though we didn't pass it in, because of lexical scope.
+即使没有将常量`TAX_RATE`传递给函数`calculateFinalPurchaseAmount(..)`，但从其内部仍然可以访问到，这就是此法范围。
 
-**Note:** For more information about lexical scope, see the first three chapters of the *Scope & Closures* title of this series.
+**注意:** 了解更多词法范围，查阅卷*Scope & Closures*的前三章。
 
-## Practice
+## Practice（练习）
 
-There is absolutely no substitute for practice in learning programming. No amount of articulate writing on my part is alone going to make you a programmer.
+学习编程除了练习别无它法，在我看来，没有一定的代码量，你不可能成为一个程序员。让我们关于本章新学的一些概念进行练习吧，我会给出“要求”，然后你自己尝试完成，最后参考后面我的实现代码。
 
-With that in mind, let's try practicing some of the concepts we learned here in this chapter. I'll give the "requirements," and you try it first. Then consult the code listing below to see how I approached it.
+* 编写一个计算你购买手机总花费的程序，你将会一直购买（提示：循环！）直到你的钱不够了，只要你的消费额低于你的预算门限，你也会为每一个手机购买配件。
+* 当你计算出你的消费金额后，加上缴税额，然后以合适的格式打印出来。
+* 最后，检查你的银行账户存款看自己是否能支付得起。
+* 你应该为“税率”、“手机价格”、“配件价格”、“预算”以及“银行账户存款”建立常量。
+* 你应该为计算缴税额、以“￥”格式化价格并保留小数点后两位而定义函数。
+* **额外挑战:** 试试将input引入到这个程序中，也许使用前面”Input"中讲到的`prompt(..)`，比如提示用户输入银行账户存款，随便你创造！
 
-* Write a program to calculate the total price of your phone purchase. You will keep purchasing phones (hint: loop!) until you run out of money in your bank account. You'll also buy accessories for each phone as long as your purchase amount is below your mental spending threshold.
-* After you've calculated your purchase amount, add in the tax, then print out the calculated purchase amount, properly formatted.
-* Finally, check the amount against your bank account balance to see if you can afford it or not.
-* You should set up some constants for the "tax rate," "phone price," "accessory price," and "spending threshold," as well as a variable for your "bank account balance.""
-* You should define functions for calculating the tax and for formatting the price with a "$" and rounding to two decimal places.
-* **Bonus Challenge:** Try to incorporate input into this program, perhaps with the `prompt(..)` covered in "Input" earlier. You may prompt the user for their bank account balance, for example. Have fun and be creative!
+好了，开始你的表演吧，在你完成之前不要偷看我的代码哦~
 
-OK, go ahead. Try it. Don't peek at my code listing until you've given it a shot yourself!
+**注意:** 因为这是一本关于JS的书，所以我使用JS来完成练习，但是你可以使用其它你更喜爱的语言。
 
-**Note:** Because this is a JavaScript book, I'm obviously going to solve the practice exercise in JavaScript. But you can do it in another language for now if you feel more comfortable.
-
-Here's my JavaScript solution for this exercise:
+以下是我的作业：
 
 ```js
 const SPENDING_THRESHOLD = 200;
@@ -691,27 +669,27 @@ if (amount > bank_balance) {
 // You can't afford this purchase. :(
 ```
 
-**Note:** The simplest way to run this JavaScript program is to type it into the developer console of your nearest browser.
+**注意:** 执行这段代码的最简单方式就是将它输入到浏览器的console里。
 
-How did you do? It wouldn't hurt to try it again now that you've seen my code. And play around with changing some of the constants to see how the program runs with different values.
+练习的如何？看了我的代码，你可以运行一下它，并且改变常量看看程序的运行情况。
 
-## Review
+## Review（回顾）
 
-Learning programming doesn't have to be a complex and overwhelming process. There are just a few basic concepts you need to wrap your head around.
+学习编程不应该是复杂的且让人挫败的过程，这里有几个基本概念你应该记住。
 
-These act like building blocks. To build a tall tower, you start first by putting block on top of block on top of block. The same goes with programming. Here are some of the essential programming building blocks:
+这些就好像堆积木，为了建一座高塔，你最开始就是不断累积一块到另一块，编程亦如是，下面是一些基本的编程积木块：
 
-* You need *operators* to perform actions on values.
-* You need values and *types* to perform different kinds of actions like math on `number`s or output with `string`s.
-* You need *variables* to store data (aka *state*) during your program's execution.
-* You need *conditionals* like `if` statements to make decisions.
-* You need *loops* to repeat tasks until a condition stops being true.
-* You need *functions* to organize your code into logical and reusable chunks.
+* 你需要*操作符*来实现值之间的行为。
+* 你需要值和*类型*来实现不同的行为比如`number`的计算，`string`的输出。
+* 你需要*变量*来存储程序运行时的数据（也就是*状态*）。
+* 你需要*条件*比如`if`语句来做决策。
+* 你需要*循环*来重复某些任务直到条件不再是`true`。
+* 你需要*函数*来组织你的代码，让它更加清晰和可复用。
 
-Code comments are one effective way to write more readable code, which makes your program easier to understand, maintain, and fix later if there are problems.
+代码注释是编写高可读代码的一个有效方式，注释会让你的程序易于理解、维护以及解决问题（如果有的话）。
 
-Finally, don't neglect the power of practice. The best way to learn how to write code is to write code.
+最后，不要忽视练习的力量，学写代码的最佳方式就是写代码。
 
-I'm excited you're well on your way to learning how to code, now! Keep it up. Don't forget to check out other beginner programming resources (books, blogs, online training, etc.). This chapter and this book are a great start, but they're just a brief introduction.
+很高兴你已经在学习如何编程的道路上步履稳定起来，继续保持，不要忘了查看其它关于编程初学的资源（书、博客、在线培训等）。本章及这本书是一个好的开始，但它们只是一个简短的介绍。
 
-The next chapter will review many of the concepts from this chapter, but from a more JavaScript-specific perspective, which will highlight most of the major topics that are addressed in deeper detail throughout the rest of the series.
+下一章会复习本章的很多概念，但是是从JS语言的角度出发，这些概念也是在其余系列中的将会进行深入详细探讨的主题。
