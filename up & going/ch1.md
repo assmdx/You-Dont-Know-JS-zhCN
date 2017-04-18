@@ -200,8 +200,8 @@ false;
 
 ### Converting Between Types（类型转换）
 
-If you have a `number` but need to print it on the screen, you need to convert the value to a `string`, and in JavaScript this conversion is called "coercion." Similarly, if someone enters a series of numeric characters into a form on an ecommerce page, that's a `string`, but if you need to then use that value to do math operations, you need to *coerce* it to a `number`.
 如果想输出`number`到屏幕，你需要将其转换为`string`，在JS中，这种转换叫做"强制转换"（简称“强转”），同样的，从网页输入的一串数字字符是`string`，但是如果想要进行数学运算，你需要将它*强转*为`number`。
+
 JS为*类型*之间的强制转换提供很多便利方式，比如：
 
 ```js
@@ -268,19 +268,15 @@ console.log( a );	// 42
 
 你肯定在学习编程之初就想要养成注释的好习惯，在后续章节，你会看到我用注释解释一些东西，所以在你的练习中也同样进行，相信我，每一个读你代码的人都会感谢你。
 
-## Variables
+## Variables（变量）
 
-Most useful programs need to track a value as it changes over the course of the program, undergoing different operations as called for by your program's intended tasks.
+大多数有用的程序都需要跟踪某个值，因为在程序中会发生改变，因为程序分配的某个任务而进行不同操作。应对这种情况最简单的方式就是将值分配给一个字符容器，即*变量*，之所以叫变量是这个容器内的值会随着时间按需改变。
 
-The easiest way to go about that in your program is to assign a value to a symbolic container, called a *variable* -- so called because the value in this container can *vary* over time as needed.
+有些编程语言中，可以声明一个变量（容器）来存储特定类型的值，比如`number`、`string`，这种*静态类型*，也叫*类型强制*的引入，是为了通过禁止非预期的值转换而保证程序正确性。
 
-In some programming languages, you declare a variable (container) to hold a specific type of value, such as `number` or `string`. *Static typing*, otherwise known as *type enforcement*, is typically cited as a benefit for program correctness by preventing unintended value conversions.
+其它语言强调值的类型，而不是变量类型，这种*弱类型*，也叫*动态类型*，允许一个变量在任何时间任何时间保存不同类型的值，它的引入是为了保证程序的灵活性，它允许某一个变量代表一个可以在程序逻辑流程中的特定时刻取任意形式值的值。
 
-Other languages emphasize types for values instead of variables. *Weak typing*, otherwise known as *dynamic typing*, allows a variable to hold any type of value at any time. It's typically cited as a benefit for program flexibility by allowing a single variable to represent a value no matter what type form that value may take at any given moment in the program's logic flow.
-
-JavaScript uses the latter approach, *dynamic typing*, meaning variables can hold values of any *type* without any *type* enforcement.
-
-As mentioned earlier, we declare a variable using the `var` statement -- notice there's no other *type* information in the declaration. Consider this simple program:
+JS使用的是*动态类型*，意味着变量可以取任何*类型*的值，而不受*类型*强制，如前所述，我们通过`var`来声明变量，注意在声明中没有*类型*信息，比如：
 
 ```js
 var amount = 99.99;
@@ -296,23 +292,13 @@ amount = "$" + String( amount );
 console.log( amount );		// "$199.98"
 ```
 
-The `amount` variable starts out holding the number `99.99`, and then holds the `number` result of `amount * 2`, which is `199.98`.
+变量`amount`一开始取值是数字`99.99`，然后是`amount * 2`的`number`类型结果，即`199.8`，第一个`console.log(..)`将`number`类型的值隐式强转为`string`类型进而（将转换后的值）打印出来。然后语句`amount = "$" + String(amount)`将`199.98`值*显式*强转为`string`类型并且在前面添加`"$"`字符。至此，`amount`存储着`string`类型的值`"$199.98"`，所以第二个`console.log(..)`不进行任何强转直接打印。
 
-The first `console.log(..)` command has to *implicitly* coerce that `number` value to a `string` to print it out.
+JS开发人员会看到使用`amount`变量存储`99.99`、`199.98`、`"$199.98"`三种不同类型的值，静态类型热爱者就需要使用不同的变量，比如`amountStr`存储最终结果`"$199.98"`，因为它们是不同类型。
 
-Then the statement `amount = "$" + String(amount)` *explicitly* coerces the `199.98` value to a `string` and adds a `"$"` character to the beginning. At this point, `amount` now holds the `string` value `"$199.98"`, so the second `console.log(..)` statement doesn't need to do any coercion to print it out.
+无论哪种方式，你会注意到`amount`保存一个随着程序而变化的运行时的值，这正好说明了变量的主要目的：管理程序*状态*。换言之，在程序运行时，*状态*跟踪值的变化。
 
-JavaScript developers will note the flexibility of using the `amount` variable for each of the `99.99`, `199.98`, and the `"$199.98"` values. Static-typing enthusiasts would prefer a separate variable like `amountStr` to hold the final `"$199.98"` representation of the value, because it's a different type.
-
-Either way, you'll note that `amount` holds a running value that changes over the course of the program, illustrating the primary purpose of variables: managing program *state*.
-
-In other words, *state* is tracking the changes to values as your program runs.
-
-Another common usage of variables is for centralizing value setting. This is more typically called *constants*, when you declare a variable with a value and intend for that value to *not change* throughout the program.
-
-You declare these *constants*, often at the top of a program, so that it's convenient for you to have one place to go to alter a value if you need to. By convention, JavaScript variables as constants are usually capitalized, with underscores `_` between multiple words.
-
-Here's a silly example:
+变量的另一个用途是集中设置值，当你声明一个变量，并赋值给它，期望它在整个程序中都*不会改变*，这种叫做*常量*。一般在程序开头声明这些*常量*，这样方便你修改它，按惯例，JS中常量一般大写，单词以`_`连接，如示例:
 
 ```js
 var TAX_RATE = 0.08;	// 8% sales tax
@@ -327,11 +313,11 @@ console.log( amount );				// 215.9784
 console.log( amount.toFixed( 2 ) );	// "215.98"
 ```
 
-**Note:** Similar to how `console.log(..)` is a function `log(..)` accessed as an object property on the `console` value, `toFixed(..)` here is a function that can be accessed on `number` values. JavaScript `number`s aren't automatically formatted for dollars -- the engine doesn't know what your intent is and there's no type for currency. `toFixed(..)` lets us specify how many decimal places we'd like the `number` rounded to, and it produces the `string` as necessary.
+**注意:** 类似于`console.log(..)`是一个通过对象属性访问的函数`log(..)`，`toFixed(..)`是一个可以从`number`类型的值访问的函数。JS`number`不会自动给人民币格式化，引擎不知道你的意图，并且没有供货币使用的类型。`toFixed(..)`允许我们指定`number`类型的值被四舍五入到小数点后多少位，然后转为`string`类型并返回。
 
-The `TAX_RATE` variable is only *constant* by convention -- there's nothing special in this program that prevents it from being changed. But if the city raises the sales tax rate to 9%, we can still easily update our program by setting the `TAX_RATE` assigned value to `0.09` in one place, instead of finding many occurrences of the value `0.08` strewn throughout the program and updating all of them.
+`TAX_RATE`变量就是*常量*啦，在程序中没有什么能改变它，当然如果城市将营业税提高到9%，我们可以只在一个地方给`TAX_RATE`赋值为`0.09`，轻松更新程序，而不是找很多`0.08`然后更新它们。
 
-The newest version of JavaScript at the time of this writing (commonly called "ES6") includes a new way to declare *constants*, by using `const` instead of `var`:
+新版本的JS（“ES6”）包含一种新的声明*常量*的方式，使用`const`代替`var`：
 
 ```js
 // as of ES6:
@@ -342,17 +328,13 @@ var amount = 99.99;
 // ..
 ```
 
-Constants are useful just like variables with unchanged values, except that constants also prevent accidentally changing value somewhere else after the initial setting. If you tried to assign any different value to `TAX_RATE` after that first declaration, your program would reject the change (and in strict mode, fail with an error -- see "Strict Mode" in Chapter 2).
+常量就如值不会改变的变量一样有用，它还避免了首次赋值后在其它地方的意外修改，如果你在`TAX_RATE`首次声明（并赋值）后尝试去再次给它赋值，你的程序会拒绝改变它（在严格模式下，以错误提示赋值失败——参见第二章中的"Strict Mode"）。顺带一提，这种"保护"防止了一定的错误，就像静态类型中的类型强制，这也是为何静态类型在其它语言中会受欢迎。
 
-By the way, that kind of "protection" against mistakes is similar to the static-typing type enforcement, so you can see why static types in other languages can be attractive!
+**注意:** 了解更多变量取不同值的知识，参见本系列的卷*Types & Grammar*。
 
-**Note:** For more information about how different values in variables can be used in your programs, see the *Types & Grammar* title of this series.
+## Blocks（块语句）
 
-## Blocks
-
-The phone store employee must go through a series of steps to complete the checkout as you buy your new phone.
-
-Similarly, in code we often need to group a series of statements together, which we often call a *block*. In JavaScript, a block is defined by wrapping one or more statements inside a curly-brace pair `{ .. }`. Consider:
+当你购买手机时，手机店店员必须通过一系列步骤来完成结算，同样的，在代码中我们经常需要将一系列语句放在一起，通常称为*块*。在JS中，使用一对花括号`{ .. }`包裹一条或更多的语句来定义一个代码块，比下：
 
 ```js
 var amount = 99.99;
@@ -364,7 +346,7 @@ var amount = 99.99;
 }
 ```
 
-This kind of standalone `{ .. }` general block is valid, but isn't as commonly seen in JS programs. Typically, blocks are attached to some other control statement, such as an `if` statement (see "Conditionals") or a loop (see "Loops"). For example:
+这种一般的代码块有效但是并不常见，代码块一般伴随着控制语句，比如`if`语句（参见“Conditionals”）或循环语句（参见"Loops"），比如：
 
 ```js
 var amount = 99.99;
@@ -376,17 +358,17 @@ if (amount > 10) {			// <-- block attached to `if`
 }
 ```
 
-We'll explain `if` statements in the next section, but as you can see, the `{ .. }` block with its two statements is attached to `if (amount > 10)`; the statements inside the block will only be processed if the conditional passes.
+我们会在下一节解释`if`语句，如你所见，将两条语句的代码块`{ .. }`附加给`if (amount > 10)`，代码块只有在条件通过时才会执行。
 
-**Note:** Unlike most other statements like `console.log(amount);`, a block statement does not need a semicolon (`;`) to conclude it.
+**注意:** 与其它如`console.log(amount);`语句不同的是：一个块语句不需要`;`来结束。
 
-## Conditionals
+## Conditionals（条件语句）
 
 "Do you want to add on the extra screen protectors to your purchase, for $9.99?" The helpful phone store employee has asked you to make a decision. And you may need to first consult the current *state* of your wallet or bank account to answer that question. But obviously, this is just a simple "yes or no" question.
 
-There are quite a few ways we can express *conditionals* (aka decisions) in our programs.
+“你是否需要购买一个屏保，只要￥40元哦？”热心的手机店店员想让你做一个选择，这时你可能需要先询问下你的钱包或者银行账户的当前*状态*再回答这个问题，但是很明显，这只是一个“是”或“否是”的问题。在程序中有很多方式可以表述*条件*（即决策）。
 
-The most common one is the `if` statement. Essentially, you're saying, "*If* this condition is true, do the following...". For example:
+最常见的一个就是`if`语句，本质上就是“*if*这个条件是真，执行下面的...”，比如：
 
 ```js
 var bank_balance = 302.13;
@@ -397,9 +379,9 @@ if (amount < bank_balance) {
 }
 ```
 
-The `if` statement requires an expression in between the parentheses `( )` that can be treated as either `true` or `false`. In this program, we provided the expression `amount < bank_balance`, which indeed will either evaluate to `true` or `false` depending on the amount in the `bank_balance` variable.
+`if`语句要求一个可以判断是`true`还是`false`的表达式包裹在`( )`内。在这段代码里，我们提供表达式`amount < bank_balance`，它实际上随着`bank_balance`的值不同而可以是`true`或`false`。
 
-You can even provide an alternative if the condition isn't true, called an `else` clause. Consider:
+你还可以提供如果if不满足时的选择，称为`else`语句，如：
 
 ```js
 const ACCESSORY_PRICE = 9.99;
@@ -420,17 +402,17 @@ else {
 }
 ```
 
-Here, if `amount < bank_balance` is `true`, we'll print out `"I'll take the accessory!"` and add the `9.99` to our `amount` variable. Otherwise, the `else` clause says we'll just politely respond with `"No, thanks."` and leave `amount` unchanged.
+如果`amount < bank_balance` 是 `true`，会打印出`"I'll take the accessory!"`并且给`amount`增加`9.99`，否则，`else`语句告诉我们应该礼貌回答`"No, thanks."`并且保持`amount`的值不变。
 
-As we discussed in "Values & Types" earlier, values that aren't already of an expected type are often coerced to that type. The `if` statement expects a `boolean`, but if you pass it something that's not already `boolean`, coercion will occur.
+正如我们之前在"Values & Types"里讨论的，当值不是所期望的类型时，会被强转为期望类型，`if`语句期望一个`boolean`类型，但是如果你传递给它一个非`boolean`类型，强转就会发生。
 
-JavaScript defines a list of specific values that are considered "falsy" because when coerced to a `boolean`, they become `false` -- these include values like `0` and `""`. Any other value not on the "falsy" list is automatically "truthy" -- when coerced to a `boolean` they become `true`. Truthy values include things like `99.99` and `"free"`. See "Truthy & Falsy" in Chapter 2 for more information.
+JS定义了一组当被强转时取值为`false`的特殊值，如`0`、`""`。其它不在该组里的值强转为`boolean`类型时，取值`true`，比如`99.99`、`free`，了解更多参见第二章的"Truthy & Falsy"。
 
-*Conditionals* exist in other forms besides the `if`. For example, the `switch` statement can be used as a shorthand for a series of `if..else` statements (see Chapter 2). Loops (see "Loops") use a *conditional* to determine if the loop should keep going or stop.
+除了`if`语句外，还有其它*条件*，比如`swtich`语句，它可以用来简化一系列的`if..else`语句（参考第二章）。循环（参见"Loops"）使用*条件*来决定循环继续还是终止。
 
-**Note:** For deeper information about the coercions that can occur implicitly in the test expressions of *conditionals*, see Chapter 4 of the *Types & Grammar* title of this series.
+**注意:** 想更深入了解*条件*语句的测试表达式（if中的()）中的隐式强转，参见卷*Types & Grammar*的第四章。
 
-## Loops
+## Loops（循环）
 
 During busy times, there's a waiting list for customers who need to speak to the phone store employee. While there's still people on that list, she just needs to keep serving the next customer.
 
