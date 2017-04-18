@@ -1,28 +1,25 @@
 # You Don't Know JS: Up & Going
 # Chapter 2: Into JavaScript
 
-In the previous chapter, I introduced the basic building blocks of programming, such as variables, loops, conditionals, and functions. Of course, all the code shown has been in JavaScript. But in this chapter, we want to focus specifically on things you need to know about JavaScript to get up and going as a JS developer.
+前一章中我介绍了编程的基本概念，比如变量、循环、条件和函数，所有代码都以JS编写。本章聚焦于成为一个真正JS开发人员所需要知道的东西。
 
-We will introduce quite a few concepts in this chapter that will not be fully explored until subsequent *YDKJS* books. You can think of this chapter as an overview of the topics covered in detail throughout the rest of this series.
+这一章中会介绍很多概念，我们会在*YDKJS*大法系列丛书中进行全面探究。尤其是当你初识JS，你应该能预料到自己将会花费一定的时间来复习概念和代码示例。所有的好基础都是一砖一瓦堆砌而来，所以不要想着自己一开始就能全面掌握所有的东西。
 
-Especially if you're new to JavaScript, you should expect to spend quite a bit of time reviewing the concepts and code examples here multiple times. Any good foundation is laid brick by brick, so don't expect that you'll immediately understand it all the first pass through.
+深入学习JS之路从这里开始。
 
-Your journey to deeply learn JavaScript starts here.
+**注意:** 正如我在第一章中所说，在你阅读这一章的过程中你应该自己尝试遇到的每一段代码，一些代码使用的是本书编写时的最新版JS语法（一般称为“ES6”代表ECMAScript第6版），如果你恰好使用的是ES6以前版本的浏览器，代码可能无法正常工作，最好使用最新版的浏览器（如Chrome、火狐、或者IE）。
 
-**Note:** As I said in Chapter 1, you should definitely try all this code yourself as you read and work through this chapter. Be aware that some of the code here assumes capabilities introduced in the newest version of JavaScript at the time of this writing (commonly referred to as "ES6" for the 6th edition of ECMAScript -- the official name of the JS specification). If you happen to be using an older, pre-ES6 browser, the code may not work. A recent update of a modern browser (like Chrome, Firefox, or IE) should be used.
+## Values & Types（值和类型）
 
-## Values & Types
-
-As we asserted in Chapter 1, JavaScript has typed values, not typed variables. The following built-in types are available:
-
+在第一章已经说过，JS得值有类型之分，变量没有类型的区分，以下是JS内置的类型：
 * `string`
 * `number`
 * `boolean`
-* `null` and `undefined`
+* `null` 和 `undefined`
 * `object`
-* `symbol` (new to ES6)
+* `symbol` (ES6新引入)
 
-JavaScript provides a `typeof` operator that can examine a value and tell you what type it is:
+JS提供一个`typeof`操作符，可以用来检验某个值的类型：
 
 ```js
 var a;
@@ -47,19 +44,19 @@ a = { b: "c" };
 typeof a;				// "object"
 ```
 
-The return value from the `typeof` operator is always one of six (seven as of ES6! - the "symbol" type) string values. That is, `typeof "abc"` returns `"string"`, not `string`.
+`typeof`操作符总是返回6种（ES6是7种）类型中的1种，并且是字符串，比如`typeof "abs"`返回`"string"`而不是`string`。
 
-Notice how in this snippet the `a` variable holds every different type of value, and that despite appearances, `typeof a` is not asking for the "type of `a`", but rather for the "type of the value currently in `a`." Only values have types in JavaScript; variables are just simple containers for those values.
+注意观察这段代码中变量`a`是如何持有不同类型的值得，不是如语法表面那样，`typeof a`不是询问`a`的类型，而是询问`a`当前值得类型。再强调一次：JS中值才有类型，变量只是存储这些值的容器。
 
-`typeof null` is an interesting case, because it errantly returns `"object"`, when you'd expect it to return `"null"`.
+`typeof null`比较有意思，因为它错误的返回了`"object"`，实际上我们期望的是返回`"null"`。
 
-**Warning:** This is a long-standing bug in JS, but one that is likely never going to be fixed. Too much code on the Web relies on the bug and thus fixing it would cause a lot more bugs!
+**警告:** 这是JS长期存在的很可能永远不会被修复的bug，因为目前网络上已经有很多代码依赖于这个bug，如果修复它，只会引入更多的bug。（好坑— —||）
 
-Also, note `a = undefined`. We're explicitly setting `a` to the `undefined` value, but that is behaviorally no different from a variable that has no value set yet, like with the `var a;` line at the top of the snippet. A variable can get to this "undefined" value state in several different ways, including functions that return no values and usage of the `void` operator.
+还需注意的是，`a = undefined`，我们显式的将`undefined`赋值给`a`，但是这个和声明了某个变量没有赋初始值是一样的效果。一般一个变量可以由多种方式被赋`undefined`，包括无返回值的函数以及使用`void`操作符。
 
-### Objects
+### Objects（对象）
 
-The `object` type refers to a compound value where you can set properties (named locations) that each hold their own values of any type. This is perhaps one of the most useful value types in all of JavaScript.
+`object`类型表示一个复合值，你可以给它设置属性，每一个属性的值可以是任何类型，这可能是JS中最有用的类型了。
 
 ```js
 var obj = {
@@ -77,15 +74,13 @@ obj["b"];	// 42
 obj["c"];	// true
 ```
 
-It may be helpful to think of this `obj` value visually:
+视觉感受一下这个`obj`可能会对你有帮助。
 
 <img src="fig4.png">
 
-Properties can either be accessed with *dot notation* (i.e., `obj.a`) or *bracket notation* (i.e., `obj["a"]`). Dot notation is shorter and generally easier to read, and is thus preferred when possible.
+可以使用*点记号*（即`obj.a`）或*括号记法*（即`obj["a"]`）来访问属性，点记号便捷，所以尽可能优先使用。当属性名有特殊字符时（如`obj["hello world!"]`），括号记法就体现它的价值了，当通过括号来访问属性时，属性经常被称为*键*，`[ ]`记法需要一个变量或者一个需要用`".."或`'..'包裹起来的`string`*文字*。
 
-Bracket notation is useful if you have a property name that has special characters in it, like `obj["hello world!"]` -- such properties are often referred to as *keys* when accessed via bracket notation. The `[ ]` notation requires either a variable (explained next) or a `string` *literal* (which needs to be wrapped in `" .. "` or `' .. '`).
-
-Of course, bracket notation is also useful if you want to access a property/key but the name is stored in another variable, such as:
+当一个属性（键）的名字存储在某个变量中时，访问就要通过括号来实现：
 
 ```js
 var obj = {
@@ -99,11 +94,13 @@ obj[b];			// "hello world"
 obj["b"];		// 42
 ```
 
-**Note:** For more information on JavaScript `object`s, see the *this & Object Prototypes* title of this series, specifically Chapter 3.
+**注意:** 更多关于JS`object`的知识，参见卷 *this & Object Prototypes*，尤其是第三章。
 
 There are a couple of other value types that you will commonly interact with in JavaScript programs: *array* and *function*. But rather than being proper built-in types, these should be thought of more like subtypes -- specialized versions of the `object` type.
 
-#### Arrays
+在JS程序中，你经常会见到如*数组*和*函数*这些类型，但是它们不是内置类型，而是子类型（`object`类型的特定版本）。
+
+#### Arrays（数组）
 
 An array is an `object` that holds values (of any type) not particularly in named properties/keys, but rather in numerically indexed positions. For example:
 
