@@ -96,13 +96,13 @@ obj["b"];		// 42
 
 **注意:** 更多关于JS`object`的知识，参见卷 *this & Object Prototypes*，尤其是第三章。
 
-There are a couple of other value types that you will commonly interact with in JavaScript programs: *array* and *function*. But rather than being proper built-in types, these should be thought of more like subtypes -- specialized versions of the `object` type.
 
-在JS程序中，你经常会见到如*数组*和*函数*这些类型，但是它们不是内置类型，而是子类型（`object`类型的特定版本）。
+
+在JS程序中，你经常会见到如 *数组* 和 *函数* 这些类型，但是它们不是内置类型，而是子类型（`object`类型的特定版本）。
 
 #### Arrays（数组）
 
-An array is an `object` that holds values (of any type) not particularly in named properties/keys, but rather in numerically indexed positions. For example:
+数组就是对象，只是它的属性/键是有序的数字，每个序号对应的位置可以存储任意类型的值。
 
 ```js
 var arr = [
@@ -119,22 +119,19 @@ arr.length;		// 3
 typeof arr;		// "object"
 ```
 
-**Note:** Languages that start counting at zero, like JS does, use `0` as the index of the first element in the array.
+**注意:** 以0为起始的语言，比如JS，0代表第一个元素。
 
-It may be helpful to think of `arr` visually:
+可视化的`arr`:
 
 <img src="fig5.png">
 
-Because arrays are special objects (as `typeof` implies), they can also have properties, including the automatically updated `length` property.
+由于数组是特殊的对象（如`typeof`表明），所以它也可以有属性，包括自动更新的`lenght`属性，理论上你可以将数组作为一个拥有自定义名字属性的普通对象，但是，这个可能有些浪费`array`的功能。
 
-You theoretically could use an array as a normal object with your own named properties, or you could use an `object` but only give it numeric properties (`0`, `1`, etc.) similar to an array. However, this would generally be considered improper usage of the respective types.
+正常情况下，数组被用来存储有序的值，而对象则存储被命名的属性。
 
-The best and most natural approach is to use arrays for numerically positioned values and use `object`s for named properties.
+#### Functions（函数）
 
-#### Functions
-
-The other `object` subtype you'll use all over your JS programs is a function:
-
+另一个你在JS编程中总会用到`object`子类型就是函数：
 ```js
 function foo() {
 	return 42;
@@ -147,15 +144,13 @@ typeof foo();		// "number"
 typeof foo.bar;		// "string"
 ```
 
-Again, functions are a subtype of `objects` -- `typeof` returns `"function"`, which implies that a `function` is a main type -- and can thus have properties, but you typically will only use function object properties (like `foo.bar`) in limited cases.
+与数组中提到的一样，函数因为是特殊的对象，所以也可以有属性，但应该更多关注函数的功能。
 
-**Note:** For more information on JS values and their types, see the first two chapters of the *Types & Grammar* title of this series.
+**注意:** 了解更多关于值和类型的知识，参见卷 *Types & Grammar* 的前两章。
 
-### Built-In Type Methods
+### Built-In Type Methods（内置类型方法）
 
-The built-in types and subtypes we've just discussed have behaviors exposed as properties and methods that are quite powerful and useful.
-
-For example:
+我们提到的内置的类型和子类型的以属性和方法表现出来的行为非常给力，比如：
 
 ```js
 var a = "hello world";
@@ -166,17 +161,15 @@ a.toUpperCase();		// "HELLO WORLD"
 b.toFixed(4);			// "3.1416"
 ```
 
-The "how" behind being able to call `a.toUpperCase()` is more complicated than just that method existing on the value.
+调用`a.toUpperCase()`后面的原理比你看到的表面的意思要复杂的多，简言之，有一种`String`（大写`S`）对象包装器形式，也叫“native”，它可以匹配原始的`string`类型，这个对象装箱在它的原型中定义`toUpperCase()`方法。
 
-Briefly, there is a `String` (capital `S`) object wrapper form, typically called a "native," that pairs with the primitive `string` type; it's this object wrapper that defines the `toUpperCase()` method on its prototype.
+当你引用原始值比如`"hello world"`的属性或方法，你是把它当做了一个`object`，JS自动将值“打包”到它对应的对象包装器（不可见）。
 
-When you use a primitive value like `"hello world"` as an `object` by referencing a property or method (e.g., `a.toUpperCase()` in the previous snippet), JS automatically "boxes" the value to its object wrapper counterpart (hidden under the covers).
+`string`类型的值可以被`String`对象包装，`number`可以被`Number`对象包装，`boolean`被`Boolean`，多数情况下，你无需在意或直接使用这些值的包装形式（在实际中尽量使用原始值，JS会帮你完成剩下的工作）。
 
-A `string` value can be wrapped by a `String` object, a `number` can be wrapped by a `Number` object, and a `boolean` can be wrapped by a `Boolean` object. For the most part, you don't need to worry about or directly use these object wrapper forms of the values -- prefer the primitive value forms in practically all cases and JavaScript will take care of the rest for you.
+**注意:** 更多关于JS native和“包装”，参见 *Types & Grammar* 的第三章，为更好的理解原型和对象，参见卷 *this & Object Prototypes* 的第五章。
 
-**Note:** For more information on JS natives and "boxing," see Chapter 3 of the *Types & Grammar* title of this series. To better understand the prototype of an object, see Chapter 5 of the *this & Object Prototypes* title of this series.
-
-### Comparing Values
+### Comparing Values（值的比较）
 
 There are two main types of value comparison that you will need to make in your JS programs: *equality* and *inequality*. The result of any comparison is a strictly `boolean` value (`true` or `false`), regardless of what value types are compared.
 
