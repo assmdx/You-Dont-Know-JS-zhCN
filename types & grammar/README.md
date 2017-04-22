@@ -4,13 +4,12 @@
 
 -----
 
-**[Purchase digital/print copy from O'Reilly](http://shop.oreilly.com/product/0636920033745.do)**
+** Personal Study Use Only, 仅供个人学习使用。**
 
 -----
 
 [Table of Contents](toc.md)
 
-* [Foreword](foreword.md) (by [David Walsh](http://davidwalsh.name))
 * [Preface](../preface.md)
 * [Chapter 1: Types](ch1.md)
 * [Chapter 2: Values](ch2.md)
