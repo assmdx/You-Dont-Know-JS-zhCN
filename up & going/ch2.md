@@ -171,19 +171,19 @@ b.toFixed(4);			// "3.1416"
 
 ### Comparing Values（值的比较）
 
-There are two main types of value comparison that you will need to make in your JS programs: *equality* and *inequality*. The result of any comparison is a strictly `boolean` value (`true` or `false`), regardless of what value types are compared.
+在JS编程中主要有两类值的比较：*相等* 和 *不等*，任何比较结果都有只能是 `boolean` 类型（ `true` 或 `false` ）。
 
-#### Coercion
+#### Coercion（强制类型转换）
 
-We talked briefly about coercion in Chapter 1, but let's revisit it here.
+在第一章已经提到强制类型转换，我们再来说一下。
 
-Coercion comes in two forms in JavaScript: *explicit* and *implicit*. Explicit coercion is simply that you can see obviously from the code that a conversion from one type to another will occur, whereas implicit coercion is when the type conversion can happen as more of a non-obvious side effect of some other operation.
+JS中的强转有两种形式：*显式* 和 *隐式*，显式是你从代码就可以明显看到转换的发生，而隐式则是一些操作的不那么明显的结果。
 
-You've probably heard sentiments like "coercion is evil" drawn from the fact that there are clearly places where coercion can produce some surprising results. Perhaps nothing evokes frustration from developers more than when the language surprises them.
+你可能听说过“强制类型转换很坑爹”这样的说法，因为在一些情况下，强转的确会产生很意外的结果，或许最能让开发人员感觉到沮丧的时候就是这个编程语言总是出现“惊喜”。
 
-Coercion is not evil, nor does it have to be surprising. In fact, the majority of cases you can construct with type coercion are quite sensible and understandable, and can even be used to *improve* the readability of your code. But we won't go much further into that debate -- Chapter 4 of the *Types & Grammar* title of this series covers all sides.
+强转并不坑爹，也没什么好惊讶的，事实上，大多数你使用强转的场景都是很容易理解的，你甚至可以用它来提高代码的可读性，但这里我们不深入讨论，会放在卷 *Types & Grammar* 的第四章。
 
-Here's an example of *explicit* coercion:
+显式强转的一个小例子：
 
 ```js
 var a = "42";
@@ -194,7 +194,7 @@ a;				// "42"
 b;				// 42 -- the number!
 ```
 
-And here's an example of *implicit* coercion:
+这个是 *隐式* 强转的例子：:
 
 ```js
 var a = "42";
@@ -205,35 +205,35 @@ a;				// "42"
 b;				// 42 -- the number!
 ```
 
-#### Truthy & Falsy
+#### Truthy & Falsy（真假）
 
-In Chapter 1, we briefly mentioned the "truthy" and "falsy" nature of values: when a non-`boolean` value is coerced to a `boolean`, does it become `true` or `false`, respectively?
+在第一章我们简单提到了值的真和假：当一个非`boolean`类型的值被强转为`boolean` 时，它是成为`true` 呢还是`false` 呢？
 
-The specific list of "falsy" values in JavaScript is as follows:
+JS中特殊的假值如下:
 
-* `""` (empty string)
-* `0`, `-0`, `NaN` (invalid `number`)
+* `""` (空字符串)
+* `0`, `-0`, `NaN` (无效 `number`)
 * `null`, `undefined`
 * `false`
 
-Any value that's not on this "falsy" list is "truthy." Here are some examples of those:
+非假，即真值：
 
 * `"hello"`
 * `42`
 * `true`
-* `[ ]`, `[ 1, "2", 3 ]` (arrays)
-* `{ }`, `{ a: 42 }` (objects)
-* `function foo() { .. }` (functions)
+* `[ ]`, `[ 1, "2", 3 ]` (数组)
+* `{ }`, `{ a: 42 }` (对象)
+* `function foo() { .. }` (函数)
 
-It's important to remember that a non-`boolean` value only follows this "truthy"/"falsy" coercion if it's actually coerced to a `boolean`. It's not all that difficult to confuse yourself with a situation that seems like it's coercing a value to a `boolean` when it's not.
+记住上面这个非 `boolean` 类型的值的强转规则很重要，这样当你遇到一个看似在将值强转为`boolean`类型实际并不是的情况时，你就不会再那般困惑。
 
-#### Equality
+#### Equality（相等）
 
-There are four equality operators: `==`, `===`, `!=`, and `!==`. The `!` forms are of course the symmetric "not equal" versions of their counterparts; *non-equality* should not be confused with *inequality*.
+T有四种判断相等的操作符：`==`, `===`, `!=`, 以及 `!==`。 加`!`的形式是指不相等。
 
-The difference between `==` and `===` is usually characterized that `==` checks for value equality and `===` checks for both value and type equality. However, this is inaccurate. The proper way to characterize them is that `==` checks for value equality with coercion allowed, and `===` checks for value equality without allowing coercion; `===` is often called "strict equality" for this reason.
+通常认为`==`和`===`的区别是，前者只比较值的相等性，而后者还要再比较类型是否相同，但这种说法并不精确。`==`是在允许强制类型转换时比较值的相等性，`===`在不允许的情况下做比较，因此`===`叫做严格相等。
 
-Consider the implicit coercion that's allowed by the `==` loose-equality comparison and not allowed with the `===` strict-equality:
+允许隐式强转的宽松相等`==`和不允许强转的严格相等`===`如下示例：
 
 ```js
 var a = "42";
@@ -243,29 +243,27 @@ a == b;			// true
 a === b;		// false
 ```
 
-In the `a == b` comparison, JS notices that the types do not match, so it goes through an ordered series of steps to coerce one or both values to a different type until the types match, where then a simple value equality can be checked.
+`a==b`比较中，JS发现两者类型不匹配，所以通过一系列步骤将一个或两个值强转为其它类型直到两者的类型一致，然后检验值的相等性。思考一下，通过强转可以有两种方法让`a==b`为`true`，是`42 == 42`呢还是`"42" == "42"`呢？
 
-If you think about it, there's two possible ways `a == b` could give `true` via coercion. Either the comparison could end up as `42 == 42` or it could be `"42" == "42"`. So which is it?
+答案是`"42"`转换为`42`，进而比较`42 == 42`。在这个例子中，无论选择哪种方法都无所谓，因为最终结果都是`true`，但是在很多复杂情况下却很重要，不光因为比较结果，还因为 *如何* 得到比较结果。
 
-The answer: `"42"` becomes `42`, to make the comparison `42 == 42`. In such a simple example, it doesn't really seem to matter which way that process goes, as the end result is the same. There are more complex cases where it matters not just what the end result of the comparison is, but *how* you get there.
+`a === b`的结果是`fales`，因为不允许强转，所以值的比较明显就会失败。许多开发人员感觉`===` 更容易预期到结果，所以他们鼓励尽量使用它，并且远离`==`，但我认为这种观点很浅薄。我相信 *如果你花时间弄明白它的原理* 你会发现它是一个很有助于你编程的工具。
 
-The `a === b` produces `false`, because the coercion is not allowed, so the simple value comparison obviously fails. Many developers feel that `===` is more predictable, so they advocate always using that form and staying away from `==`. I think this view is very shortsighted. I believe `==` is a powerful tool that helps your program, *if you take the time to learn how it works.*
+这里我们不细致的讲解`==`比较的原理，因为它很大一部分都很清晰，但也有一些比较重要的小知识点需要关注，你可以从[ES5 specification](http://www.ecma-international.org/ecma-262/5.1/) 的第11.9.3章节了解所有规则，你会发现它并不像传说中那么不堪。
 
-We're not going to cover all the nitty-gritty details of how the coercion in `==` comparisons works here. Much of it is pretty sensible, but there are some important corner cases to be careful of. You can read section 11.9.3 of the ES5 specification (http://www.ecma-international.org/ecma-262/5.1/) to see the exact rules, and you'll be surprised at just how straightforward this mechanism is, compared to all the negative hype surrounding it.
+方便起见，我将众多细节浓缩为一些简单原则，帮助你来针对不同情况选择`===`或`==`：
 
-To boil down a whole lot of details to a few simple takeaways, and help you know whether to use `==` or `===` in various situations, here are my simple rules:
+* 如果等号两侧有任意一个可能是`true`或`false`，使用`===`。
+* 如果等号两侧有任意一个可能是特殊值（`0`, `""`, 或空数组`[]`），使用`===`。
+* 在其它 *所有* 情况下，你可以放心使用`==`，它能让你的代码简单且更具有可读性。（译者代码写的少，并没发现可读性的益处）
 
-* If either value (aka side) in a comparison could be the `true` or `false` value, avoid `==` and use `===`.
-* If either value in a comparison could be of these specific values (`0`, `""`, or `[]` -- empty array), avoid `==` and use `===`.
-* In *all* other cases, you're safe to use `==`. Not only is it safe, but in many cases it simplifies your code in a way that improves readability.
+这些浓缩的规则需要你重新审视的的代码，并且去考虑变量传过来的值的可能性，如果你对值很确定，那就放心使用`==`，如果不确定，使用`===`，就这么简单。
 
-What these rules boil down to is requiring you to think critically about your code and about what kinds of values can come through variables that get compared for equality. If you can be certain about the values, and `==` is safe, use it! If you can't be certain about the values, use `===`. It's that simple.
+`!=`与`==`成对，`!==`与`===`成对，使用原则一样，但是带`!`表示不等。
 
-The `!=` non-equality form pairs with `==`, and the `!==` form pairs with `===`. All the rules and observations we just discussed hold symmetrically for these non-equality comparisons.
+当你比较非基本值，比如对象（包括函数、数组）时，要特别注意，因为这些值实际上是通过引用获取的，`==`和`===`只是比较引用是否一致，而不是被引用指向的值。
 
-You should take special note of the `==` and `===` comparison rules if you're comparing two non-primitive values, like `object`s (including `function` and `array`). Because those values are actually held by reference, both `==` and `===` comparisons will simply check whether the references match, not anything about the underlying values.
-
-For example, `array`s are by default coerced to `string`s by simply joining all the values with commas (`,`) in between. You might think that two `array`s with the same contents would be `==` equal, but they're not:
+比如，`array`强转为`string`时，默认会使用逗号（`,`）来拼接所有元素，你可能认为具有相同内容的两个数组是`==`相等的，但实际并不：
 
 ```js
 var a = [1,2,3];
@@ -277,17 +275,15 @@ b == c;		// true
 a == b;		// false
 ```
 
-**Note:** For more information about the `==` equality comparison rules, see the ES5 specification (section 11.9.3) and also consult Chapter 4 of the *Types & Grammar* title of this series; see Chapter 2 for more information about values versus references.
+**注意:** 了解更多`==`的比较规则，参见ES5 specification（第11.9.3章节），或者卷 *Types & Grammar* 的第四章，以及该卷的第二章了解值和引用的知识。
 
-#### Inequality
+#### Inequality（大小）
 
-The `<`, `>`, `<=`, and `>=` operators are used for inequality, referred to in the specification as "relational comparison." Typically they will be used with ordinally comparable values like `number`s. It's easy to understand that `3 < 4`.
+ `<`, `>`, `<=`, and `>=`操作符被用来描述大小关系，一般它们被用于可排序的值，比如`number`，JS的`string`类型的值也可以比较大小（字母表顺序），比如`"bar" < "foo"`。
 
-But JavaScript `string` values can also be compared for inequality, using typical alphabetic rules (`"bar" < "foo"`).
+与`==`一样的强转规则（严格来讲有一点儿区别），没有`===`这样不允许强转的比较大小的操作符。
 
-What about coercion? Similar rules as `==` comparison (though not exactly identical!) apply to the inequality operators. Notably, there are no "strict inequality" operators that would disallow coercion the same way `===` "strict equality" does.
-
-Consider:
+如下:
 
 ```js
 var a = 41;
@@ -298,9 +294,9 @@ a < b;		// true
 b < c;		// true
 ```
 
-What happens here? In section 11.8.5 of the ES5 specification, it says that if both values in the `<` comparison are `string`s, as it is with `b < c`, the comparison is made lexicographically (aka alphabetically like a dictionary). But if one or both is not a `string`, as it is with `a < b`, then both values are coerced to be `number`s, and a typical numeric comparison occurs.
+发生了什么呢？在ES5 specification的11.8.5章节有说，如果`<`两侧的值都是`string`类型，比如上面代码中的`b < c`，会进行字面值比较（即字母表顺序），但是如果有一侧或者两侧不是`string`，比如上面的`a < b`，那么两侧的值都会被强制转换为`number`类型，然后进行数值比较。
 
-The biggest gotcha you may run into here with comparisons between potentially different value types -- remember, there are no "strict inequality" forms to use -- is when one of the values cannot be made into a valid number, such as:
+你经常会遇到值无法被强转为`number`的情况：
 
 ```js
 var a = 42;
@@ -311,13 +307,11 @@ a > b;		// false
 a == b;		// false
 ```
 
-Wait, how can all three of those comparisons be `false`? Because the `b` value is being coerced to the "invalid number value" `NaN` in the `<` and `>` comparisons, and the specification says that `NaN` is neither greater-than nor less-than any other value.
+什么鬼？`a`和`b`的三种比较都是`false`？因为`b`在`<`和`>`比较中被强转为“无效数值类型”——`NaN`，specification指出：`NaN`不大于也不小于任何其他值。
 
-The `==` comparison fails for a different reason. `a == b` could fail if it's interpreted either as `42 == NaN` or `"42" == "foo"` -- as we explained earlier, the former is the case.
+**注意:** 了解更多比较大小的规则，参考ES5 specification的11.8.5章节，或者卷 *Types & Grammar* 的第四章。
 
-**Note:** For more information about the inequality comparison rules, see section 11.8.5 of the ES5 specification and also consult Chapter 4 of the *Types & Grammar* title of this series.
-
-## Variables
+## Variables（变量）
 
 In JavaScript, variable names (including function names) must be valid *identifiers*. The strict and complete rules for valid characters in identifiers are a little complex when you consider nontraditional characters such as Unicode. If you only consider typical ASCII alphanumeric characters, though, the rules are simple.
 
@@ -428,11 +422,9 @@ Because of using `let` instead of `var`, `b` will belong only to the `if` statem
 
 **Note:** For more information about scope, see the *Scope & Closures* title of this series. See the *ES6 & Beyond* title of this series for more information about `let` block scoping.
 
-## Conditionals
+## Conditionals（条件语句）
 
-In addition to the `if` statement we introduced briefly in Chapter 1, JavaScript provides a few other conditionals mechanisms that we should take a look at.
-
-Sometimes you may find yourself writing a series of `if..else..if` statements like this:
+除了在第一章中介绍的`if`语句外，我们来看一下JS提供的其它条件语句，有时你会发现自己写了一堆`if..else..if`的代码：
 
 ```js
 if (a == 2) {
@@ -449,7 +441,7 @@ else {
 }
 ```
 
-This structure works, but it's a little verbose because you need to specify the `a` test for each case. Here's another option, the `switch` statement:
+这种结构可以工作，但是有点儿冗余，因为你要针对每一种情况来验证`a`，我们还有更好的选择`switch`：
 
 ```js
 switch (a) {
@@ -467,7 +459,7 @@ switch (a) {
 }
 ```
 
-The `break` is important if you want only the statement(s) in one `case` to run. If you omit `break` from a `case`, and that `case` matches or runs, execution will continue with the next `case`'s statements regardless of that `case` matching. This so called "fall through" is sometimes useful/desired:
+`break`保证只有一个`case`里的语句被执行，如果你从一个`case`里删除`break`，那个`case`匹配并运行后，会忽略跟在它后面的`case`的条件，而直接执行其中语句，这被叫做"fall through"，很有用哦：
 
 ```js
 switch (a) {
@@ -483,9 +475,9 @@ switch (a) {
 }
 ```
 
-Here, if `a` is either `2` or `10`, it will execute the "some cool stuff" code statements.
+如果`a`取值`2`或`10`，将会执行"some cool stuff"区域的代码。
 
-Another form of conditional in JavaScript is the "conditional operator," often called the "ternary operator." It's like a more concise form of a single `if..else` statement, such as:
+JS中的另一种条件语句是"条件操作符"也被称为"三元操作符"， 它就像是`if..else` 语句的简写：
 
 ```js
 var a = 42;
@@ -502,17 +494,17 @@ var b = (a > 41) ? "hello" : "world";
 // }
 ```
 
-If the test expression (`a > 41` here) evaluates as `true`, the first clause (`"hello"`) results, otherwise the second clause (`"world"`) results, and whatever the result is then gets assigned to `b`.
+如果条件验证（比如这里的`a > 41`）是`true`，那么第一个子句（`"hello"`）结果被赋给`b`，否则第二子句（`"world"`）的结果被赋给`b`。
 
-The conditional operator doesn't have to be used in an assignment, but that's definitely the most common usage.
+条件操作符不是只能用于而是常用于赋值。
 
-**Note:** For more information about testing conditions and other patterns for `switch` and `? :`, see the *Types & Grammar* title of this series.
+**注意:** 了解更多条件验证以及`switch`、`? :`的其它模式，参见卷 *Types & Grammar* 。
 
-## Strict Mode
+## Strict Mode（严格模式）
 
-ES5 added a "strict mode" to the language, which tightens the rules for certain behaviors. Generally, these restrictions are seen as keeping the code to a safer and more appropriate set of guidelines. Also, adhering to strict mode makes your code generally more optimizable by the engine. Strict mode is a big win for code, and you should use it for all your programs.
+ES5引入了“严格模式”，它对一些行为做了更严格的约束。通常，这些约束是为了让代码更加安全和标准，当然，使用严格模式能让引擎将你的代码更加优化，你应该在你的程序中一直使用它。
 
-You can opt in to strict mode for an individual function, or an entire file, depending on where you put the strict mode pragma:
+你可以在某个函数内或者整个文件使用严格模式，取决你在何处放置严格模式的指示：
 
 ```js
 function foo() {
@@ -528,7 +520,7 @@ function foo() {
 // this code is not strict mode
 ```
 
-Compare that to:
+比较:
 
 ```js
 "use strict";
@@ -544,7 +536,7 @@ function foo() {
 // this code is strict mode
 ```
 
-One key difference (improvement!) with strict mode is disallowing the implicit auto-global variable declaration from omitting the `var`:
+严格模式的一个重要改进就是，不再允许将无`var`声明的变量隐式自动提升为全局变量：:
 
 ```js
 function foo() {
@@ -555,11 +547,11 @@ function foo() {
 foo();
 ```
 
-If you turn on strict mode in your code, and you get errors, or code starts behaving buggy, your temptation might be to avoid strict mode. But that instinct would be a bad idea to indulge. If strict mode causes issues in your program, almost certainly it's a sign that you have things in your program you should fix.
+如果你的代码开启了严格模式，你遇到了错误，或者代码开始出现bug，你可能想直接关掉严格模式，但是那可能并不是一个好的选择，如果严格模式在你的代码中引起了问题，那说明你的程序确实有需要修复的东西。
 
-Not only will strict mode keep your code to a safer path, and not only will it make your code more optimizable, but it also represents the future direction of the language. It'd be easier on you to get used to strict mode now than to keep putting it off -- it'll only get harder to convert later!
+严格模式并不只是保证你的代码更加安全，也并不只是让你的代码更加优化，它也代表了这个语言的发展方向。现在就习惯使用严格模式会比你推迟使用更简单——越晚转变越困难！
 
-**Note:** For more information about strict mode, see the Chapter 5 of the *Types & Grammar* title of this series.
+**注意:** 详细了解严格模式，参见卷 *Types & Grammar* 的第五章。
 
 ## Functions As Values
 
