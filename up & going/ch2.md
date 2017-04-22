@@ -313,25 +313,23 @@ a == b;		// false
 
 ## Variables（变量）
 
-In JavaScript, variable names (including function names) must be valid *identifiers*. The strict and complete rules for valid characters in identifiers are a little complex when you consider nontraditional characters such as Unicode. If you only consider typical ASCII alphanumeric characters, though, the rules are simple.
+在JS中，变量名必须是有效的 *标识符* ，如果你考虑到非传统的字符比如Unicode，那么严格且完备的标识符规则就有些复杂，而如果只考虑典型的ASCII字母字符，那么就会简单多。
 
-An identifier must start with `a`-`z`, `A`-`Z`, `$`, or `_`. It can then contain any of those characters plus the numerals `0`-`9`.
+一个标识符必须以`a`-`z`，`A`-`Z`，`$`或者`_`开始，然后可以包含这些字符或`0`-`9`数字。
 
-Generally, the same rules apply to a property name as to a variable identifier. However, certain words cannot be used as variables, but are OK as property names. These words are called "reserved words," and include the JS keywords (`for`, `in`, `if`, etc.) as well as `null`, `true`, and `false`.
+一般的，变量标识符与属性名的命名规则一样，然而，有一些特殊的单词不能用于变量名，却可以用于属性名，这些单词被称为“预留关键词”，包括JS的关键词（`for`, `in`, `if`等），以及`null`、`true`、`false`。
 
-**Note:** For more information about reserved words, see Appendix A of the *Types & Grammar* title of this series.
+**注意:** 了解更多预留关键词，参考卷 *Types & Grammar* 的Appendix A。
 
-### Function Scopes
+### Function Scopes（函数作用域）
 
-You use the `var` keyword to declare a variable that will belong to the current function scope, or the global scope if at the top level outside of any function.
+你使用`var`关键字来声明变量，它包含在当前函数的作用域内，或者变量在任何函数外，属于全局作用域。
 
-#### Hoisting
+#### Hoisting（提升）
 
-Wherever a `var` appears inside a scope, that declaration is taken to belong to the entire scope and accessible everywhere throughout.
+无论一个`var`出现在作用域的何处，这个声明会被提升到整个作用域，域内的任何地方都能访问到。这种行为叫做 *提升* ，可以认为是一个`var`声明被移动到作用域的顶部，技术上来讲，用代码编译过程来解释这个过程可能更精确，但是我们暂时可以跳过这些细节。
 
-Metaphorically, this behavior is called *hoisting*, when a `var` declaration is conceptually "moved" to the top of its enclosing scope. Technically, this process is more accurately explained by how code is compiled, but we can skip over those details for now.
-
-Consider:
+有如下代码:
 
 ```js
 var a = 2;
@@ -351,11 +349,11 @@ function foo() {
 console.log( a );	// 2
 ```
 
-**Warning:** It's not common or a good idea to rely on variable *hoisting* to use a variable earlier in its scope than its `var` declaration appears; it can be quite confusing. It's much more common and accepted to use *hoisted* function declarations, as we do with the `foo()` call appearing before its formal declaration.
+**警告:** 借助变量提升来在它声明之前使用它并不是一个明智的做法，这样做会出现让人困惑的结果。但使用提升后的函数却很常见，比如上面代码中在`foo()`正式声明之前调用它。
 
-#### Nested Scopes
+#### Nested Scopes（作用域嵌套）
 
-When you declare a variable, it is available anywhere in that scope, as well as any lower/inner scopes. For example:
+当你声明一个变量后，它在作用域的任何地方都能被访问到，即使是更内层作用域，比如：
 
 ```js
 function foo() {
@@ -381,9 +379,9 @@ function foo() {
 foo();
 ```
 
-Notice that `c` is not available inside of `bar()`, because it's declared only inside the inner `baz()` scope, and that `b` is not available to `foo()` for the same reason.
+注意在`bar()`中访问不到`c`，因为它是在更内层的`baz()`中声明的，同理，在`foo()`中也访问不到`b`。
 
-If you try to access a variable's value in a scope where it's not available, you'll get a `ReferenceError` thrown. If you try to set a variable that hasn't been declared, you'll either end up creating a variable in the top-level global scope (bad!) or getting an error, depending on "strict mode" (see "Strict Mode"). Let's take a look:
+如果你试图访问一个不在自己作用域内的变量，你会得到一个`ReferenceError`异常。如果你试图给一个没有声明的变量赋值，那么就会在全局域内生成一个变量（这种做法很不好），或者得到一个错误，两种情况取决于是否开启了严格模式。看代码：
 
 ```js
 function foo() {
@@ -394,9 +392,9 @@ foo();
 a;			// 1 -- oops, auto global variable :(
 ```
 
-This is a very bad practice. Don't do it! Always formally declare your variables.
+这种做法很糟糕，尽量使用有正式声明的变量。
 
-In addition to creating declarations for variables at the function level, ES6 *lets* you declare variables to belong to individual blocks (pairs of `{ .. }`), using the `let` keyword. Besides some nuanced details, the scoping rules will behave roughly the same as we just saw with functions:
+除了在函数层面创建变量外，ES6还允许变量（通过`let`声明）只属于一个块作用域内（`{ .. }`内）。除了一些细微差别，它的作用域规则基本与我们刚才看到的函数作用域一样：
 
 ```js
 function foo() {
@@ -418,9 +416,9 @@ foo();
 // 5 7 9
 ```
 
-Because of using `let` instead of `var`, `b` will belong only to the `if` statement and thus not to the whole `foo()` function's scope. Similarly, `c` belongs only to the `while` loop. Block scoping is very useful for managing your variable scopes in a more fine-grained fashion, which can make your code much easier to maintain over time.
+因为使用了`let` 而不是`var`, `b`只属于`if`语句的作用域而不是`foo()`的整个函数作用域，同样的，`c`只属于`while`循环内，块作用域让你可以在更细的粒度管理你的代码，这让你的代码以后维护起来更容易。
 
-**Note:** For more information about scope, see the *Scope & Closures* title of this series. See the *ES6 & Beyond* title of this series for more information about `let` block scoping.
+**Note:** 了解更多关于作用域的知识，参见卷 *Scope & Closures* ，参见 *ES6 & Beyond* 了解更多关于`let`的块作用域。
 
 ## Conditionals（条件语句）
 
@@ -553,9 +551,9 @@ foo();
 
 **注意:** 详细了解严格模式，参见卷 *Types & Grammar* 的第五章。
 
-## Functions As Values
+## Functions As Values（函数作为值）
 
-So far, we've discussed functions as the primary mechanism of *scope* in JavaScript. You recall typical `function` declaration syntax as follows:
+目前为止，我们只讨论了JS中函数作为 *域* 这种基本机制的知识，你可以想起来典型的声明函数的语法：
 
 ```js
 function foo() {
@@ -563,13 +561,11 @@ function foo() {
 }
 ```
 
-Though it may not seem obvious from that syntax, `foo` is basically just a variable in the outer enclosing scope that's given a reference to the `function` being declared. That is, the `function` itself is a value, just like `42` or `[1,2,3]` would be.
+虽然从语法看来并不明显，但是`foo`在它的闭合作用域外的确只是一个引用到声明`function`的变量，即`function`本身（译者注：函数的定义）只是一个值，类似于`42`或者`[1,2,3]`。
 
-This may sound like a strange concept at first, so take a moment to ponder it. Not only can you pass a value (argument) *to* a function, but *a function itself can be a value* that's assigned to variables, or passed to or returned from other functions.
+这个概念初看起来很奇怪，所以花些时间仔细想想，你不仅可以将值（参数）传递 *到* 一个函数，而且 *函数本身可以是一个值* ，这个值可能是被赋给了变量，或者传递给其他函数，或来时其他函数的返回值。
 
-As such, a function value should be thought of as an expression, much like any other value or expression.
-
-Consider:
+如此，一个函数值应该被当做一个表达式，就像其它的值或表达式那样，如下：
 
 ```js
 var foo = function() {
@@ -581,17 +577,14 @@ var x = function bar(){
 };
 ```
 
-The first function expression assigned to the `foo` variable is called *anonymous* because it has no `name`.
+第一个函数表达式被赋值给变量`foo`，因为没有`name`所以叫做*匿名*。第二个函数表达式是 *命名* （`bar`），甚至为了引用它，还被赋值给了变量`x`，*命名函数表达式* 个人更喜欢一些，尽管 *匿名函数表达式* 依然很常见。
 
-The second function expression is *named* (`bar`), even as a reference to it is also assigned to the `x` variable. *Named function expressions* are generally more preferable, though *anonymous function expressions* are still extremely common.
+了解更多，参见卷 *Scope & Closures* 。
 
-For more information, see the *Scope & Closures* title of this series.
+### Immediately Invoked Function Expressions (IIFEs)（立即执行函数）
 
-### Immediately Invoked Function Expressions (IIFEs)
 
-In the previous snippet, neither of the function expressions are executed -- we could if we had included `foo()` or `x()`, for instance.
-
-There's another way to execute a function expression, which is typically referred to as an *immediately invoked function expression* (IIFE):
+在前面的代码片段中，没有任何函数表达式被执行过，如果我们想要执行可以使用`foo()`或`x()`，但还有一种方式来执行，也就是所谓的 *立即执行函数*：
 
 ```js
 (function IIFE(){
@@ -600,11 +593,9 @@ There's another way to execute a function expression, which is typically referre
 // "Hello!"
 ```
 
-The outer `( .. )` that surrounds the `(function IIFE(){ .. })` function expression is just a nuance of JS grammar needed to prevent it from being treated as a normal function declaration.
+函数表达式`(function IIFE(){ .. })` 中外层包裹的 `( .. )` 正是JS语法中用来防止它被当成一个普通的函数声明的精妙之处。表达式最后面的 `()`（在`})();`那行）意思是执行在它前面的函数表达式。
 
-The final `()` on the end of the expression -- the `})();` line -- is what actually executes the function expression referenced immediately before it.
-
-That may seem strange, but it's not as foreign as first glance. Consider the similarities between `foo` and `IIFE` here:
+这个可能有点儿怪，但是它并不像第一眼那么陌生，观察`foo`和`IIFE`的相同点：
 
 ```js
 function foo() { .. }
@@ -618,9 +609,9 @@ foo();
 (function IIFE(){ .. })();
 ```
 
-As you can see, listing the `(function IIFE(){ .. })` before its executing `()` is essentially the same as including `foo` before its executing `()`; in both cases, the function reference is executed with `()` immediately after it.
+如你所见，在`()`执行前的`(function IIFE(){ .. })`与`foo`本质是一样的，两者都是函数在`()`后立即执行函数引用。
 
-Because an IIFE is just a function, and functions create variable *scope*, using an IIFE in this fashion is often used to declare variables that won't affect the surrounding code outside the IIFE:
+由于IIFE只是一个函数，有函数就有变量 *作用域*，所以一般使用IIFE这种方式来声明那些IIFE外围代码的变量，比如：
 
 ```js
 var a = 42;
@@ -633,7 +624,7 @@ var a = 42;
 console.log( a );		// 42
 ```
 
-IIFEs can also have return values:
+IIFE也可以有返回值：
 
 ```js
 var x = (function IIFE(){
@@ -643,15 +634,13 @@ var x = (function IIFE(){
 x;	// 42
 ```
 
-The `42` value gets `return`ed from the `IIFE`-named function being executed, and is then assigned to `x`.
+可以返回`42`的IIFE被执行后，返回`42`，赋值给`x`。
 
-### Closure
+### Closure（闭包）
 
-*Closure* is one of the most important, and often least understood, concepts in JavaScript. I won't cover it in deep detail here, and instead refer you to the *Scope & Closures* title of this series. But I want to say a few things about it so you understand the general concept. It will be one of the most important techniques in your JS skillset.
+*必报* 是JS里一个很重要但是少理解的概念，这里我们不深入展开（想深入了解参考卷 *Scope & Closures*）。但我还是要说一些好让你有个大致概念，闭包会是你JS技能里的最重要之一。
 
-You can think of closure as a way to "remember" and continue to access a function's scope (its variables) even once the function has finished running.
-
-Consider:
+你可以将闭包当做是一种“存储”进而访问函数作用域（它的变量）的一种方式，即使函数已经运行完毕，比如：
 
 ```js
 function makeAdder(x) {
@@ -667,7 +656,7 @@ function makeAdder(x) {
 }
 ```
 
-The reference to the inner `add(..)` function that gets returned with each call to the outer `makeAdder(..)` is able to remember whatever `x` value was passed in to `makeAdder(..)`. Now, let's use `makeAdder(..)`:
+每一次调用外函数`makeAdder(..)`都会返回一个对内函数`add(..)`的引用，这个引用可以存储传入`makeAdder(..)`的任何`x`的值，现在，让我们使用`makeAdder(..)`：
 
 ```js
 // `plusOne` gets a reference to the inner `add(..)`
@@ -686,18 +675,18 @@ plusOne( 41 );		// 42 <-- 1 + 41
 plusTen( 13 );		// 23 <-- 10 + 13
 ```
 
-More on how this code works:
+代码工作流程说明：
 
-1. When we call `makeAdder(1)`, we get back a reference to its inner `add(..)` that remembers `x` as `1`. We call this function reference `plusOne(..)`.
-2. When we call `makeAdder(10)`, we get back another reference to its inner `add(..)` that remembers `x` as `10`. We call this function reference `plusTen(..)`.
-3. When we call `plusOne(3)`, it adds `3` (its inner `y`) to the `1` (remembered by `x`), and we get `4` as the result.
-4. When we call `plusTen(13)`, it adds `13` (its inner `y`) to the `10` (remembered by `x`), and we get `23` as the result.
+1. 当调用`makeAdder(1)`时，我们得到一个指向它内函数`add(..)`的引用，这个引用存储了`x`的值为1，当我们将这个函数引用命名为`plusOne`。
+2. 当调用`makeAdder(10)`时，我们得到一个指向它内函数`add(..)`的引用，这个引用存储了`x`的值为10，当我们将这个函数引用命名为`plusTen`。
+3. 当调用`plusOne(3)`时，它会给`1`（存储的`x`）加上`3`（传递的参数`y`），我们得到`4`，返回。
+4. 当调用`plusTen(13)`时，它会给`10`（存储的`x`）加上`13`（传递的参数`y`），我们得到`23`，返回。
 
-Don't worry if this seems strange and confusing at first -- it can be! It'll take lots of practice to understand it fully.
+如果刚开始有些困惑和觉得奇怪，别慌，的确会那样！多练习你就会理解。
 
-But trust me, once you do, it's one of the most powerful and useful techniques in all of programming. It's definitely worth the effort to let your brain simmer on closures for a bit. In the next section, we'll get a little more practice with closure.
+但是相信我，一旦你掌握了它，在你以后的编程中，它会是一个很强大很有用的技术，所以慢慢去理解闭包，在下一节，我们会有一些闭包的练习。
 
-#### Modules
+#### Modules（模块）
 
 The most common usage of closure in JavaScript is the module pattern. Modules let you define private implementation details (variables, functions) that are hidden from the outside world, as well as a public API that *is* accessible from the outside.
 
