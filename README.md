@@ -16,3 +16,18 @@
 
 ### [Chapter 3: Into YDKJS](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/up%20%26%20going/ch3.md)
 介绍了该系列丛书的其它几卷涉及的主题以及正确的打开方式。
+
+## types & grammar
+### [Chapter 1: Types](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch1.md)
+
+### [Chapter 2: Values](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch2.md)
+
+### [Chapter 3: Natives](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch3.md)
+
+### [Chapter 4: Coercion](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch4.md)
+
+### [Chapter 5: Grammar](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch5.md)
+
+### [Appendix A: Mixed Environment JavaScript](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/apA.md)
+
+### [Appendix B: Thank You's!](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/apB.md)
