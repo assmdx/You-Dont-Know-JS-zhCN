@@ -1,9 +1,10 @@
 # You Don't Know JS: Types & Grammar
 # Chapter 3: Natives
 
-Several times in Chapters 1 and 2, we alluded to various built-ins, usually called "natives," like `String` and `Number`. Let's examine those in detail now.
 
-Here's a list of the most commonly used natives:
+在1、2章中我们几次提到不同的内置函数，也称"natives"，像`String`和`Number`，下面我们来详细学习。
+
+常用的几个natives:
 
 * `String()`
 * `Number()`
@@ -16,17 +17,14 @@ Here's a list of the most commonly used natives:
 * `Error()`
 * `Symbol()` -- added in ES6!
 
-As you can see, these natives are actually built-in functions.
-
-If you're coming to JS from a language like Java, JavaScript's `String()` will look like the `String(..)` constructor you're used to for creating string values. So, you'll quickly observe that you can do things like:
-
+如果你是从其它如Java语言转过来的，那么JS的`String()`就和你所习惯的`String(..)`构造器创建字符串值一些，如此，你会发现你可以这样做：
 ```js
 var s = new String( "Hello World!" );
 
 console.log( s.toString() ); // "Hello World!"
 ```
 
-It *is* true that each of these natives can be used as a native constructor. But what's being constructed may be different than you think.
+这些natives的确可以被这么当做构造器使用，但是它们构造的东西可能和你所想的并不一样。
 
 ```js
 var a = new String( "abc" );
@@ -37,55 +35,51 @@ a instanceof String; // true
 
 Object.prototype.toString.call( a ); // "[object String]"
 ```
+通过构造器创建值(`new String('abs')`)相当于一个对基本值的对象封装。
 
-The result of the constructor form of value creation (`new String("abc")`) is an object wrapper around the primitive (`"abc"`) value.
+`typeof`说明这些对象并不是它们本身特殊的 *类型* ，而是`object`的子类型。
 
-Importantly, `typeof` shows that these objects are not their own special *types*, but more appropriately they are subtypes of the `object` type.
-
-This object wrapper can further be observed with:
+可以通过这个查看对象封装器：
 
 ```js
 console.log( a );
 ```
+这条语句的的输出随浏览器不同而不同，因为console针对对象的序列化没有统一标准，只是为了方便开发者查看。
 
-The output of that statement varies depending on your browser, as developer consoles are free to choose however they feel it's appropriate to serialize the object for developer inspection.
+**注意:** 写作当时，最新版的Chrome会打印`String {0: "a", 1: "b", 2: "c", length: 3, [[PrimitiveValue]]: "abc"}`这样的结果，但是旧版本的Chrome可能会打印`String {0: "a", 1: "b", 2: "c"}`。最新版火狐浏览器打印`String ["a","b","c"]`，但以前会打印斜体的`"abc"`，点击后可以打开审查窗口，当然这些都会或可能已经改变了。
 
-**Note:** At the time of writing, the latest Chrome prints something like this: `String {0: "a", 1: "b", 2: "c", length: 3, [[PrimitiveValue]]: "abc"}`. But older versions of Chrome used to just print this: `String {0: "a", 1: "b", 2: "c"}`. The latest Firefox currently prints `String ["a","b","c"]`, but used to print `"abc"` in italics, which was clickable to open the object inspector. Of course, these results are subject to rapid change and your experience may vary.
-
-The point is, `new String("abc")` creates a string wrapper object around `"abc"`, not just the primitive `"abc"` value itself.
+重点是，`new String('abc')`创建了一个含有`'abc'`的字符串对象封装，而不仅仅是基本值本身。
 
 ## Internal `[[Class]]`
 
-Values that are `typeof` `"object"` (such as an array) are additionally tagged with an internal `[[Class]]` property (think of this more as an internal *class*ification rather than related to classes from traditional class-oriented coding). This property cannot be accessed directly, but can generally be revealed indirectly by borrowing the default `Object.prototype.toString(..)` method called against the value. For example:
+那些`typeof`为`'object'`的值（比如一个数组），会额外的增加一个`[[Class]]`属性（把它当做一个内部*类*标识而不是传统的面向对象编程的类），这个属性不能直接访问，但是可以借助默认的`Object.prototype.toString(..)`方法来间接显示：
 
 ```js
 Object.prototype.toString.call( [1,2,3] );			// "[object Array]"
 
 Object.prototype.toString.call( /regex-literal/i );	// "[object RegExp]"
 ```
+示例中数组的内部`[[Class]]`值是`'Array'`，正则表达式是`'RegExp'`，大多数情况下，内部`[[Class]]`值对应着与值相关的native构造器，但总有例外。
 
-So, for the array in this example, the internal `[[Class]]` value is `"Array"`, and for the regular expression, it's `"RegExp"`. In most cases, this internal `[[Class]]` value corresponds to the built-in native constructor (see below) that's related to the value, but that's not always the case.
-
-What about primitive values? First, `null` and `undefined`:
+比如基本值，`null`和`undefined`：
 
 ```js
 Object.prototype.toString.call( null );			// "[object Null]"
 Object.prototype.toString.call( undefined );	// "[object Undefined]"
 ```
 
-You'll note that there are no `Null()` or `Undefined()` native constructors, but nevertheless the `"Null"` and `"Undefined"` are the internal `[[Class]]` values exposed.
+你会注意到并没有`Null()`或`Undefined()`这样的native构造器，然而`'Null'`和`'Undefined'`却是显示出来的内部`[[Class]]`值。
 
-But for the other simple primitives like `string`, `number`, and `boolean`, another behavior actually kicks in, which is usually called "boxing" (see "Boxing Wrappers" section next):
+对于其它基本类型如`string`、`number`、`boolean`，还有另一个特殊的行为，也叫做“装箱”（参见下一节的“Boxing Wrappers”）：
 
 ```js
 Object.prototype.toString.call( "abc" );	// "[object String]"
 Object.prototype.toString.call( 42 );		// "[object Number]"
 Object.prototype.toString.call( true );		// "[object Boolean]"
 ```
+这段代码里，每一个基本值都被自动装箱为它们各自的对象封装器，这就是为何它们的内部`[[Class]]`分别是`"String"`、`"Number"`、 `"Boolean"`。
 
-In this snippet, each of the simple primitives are automatically boxed by their respective object wrappers, which is why `"String"`, `"Number"`, and `"Boolean"` are revealed as the respective internal `[[Class]]` values.
-
-**Note:** The behavior of `toString()` and `[[Class]]` as illustrated here has changed a bit from ES5 to ES6, but we cover those details in the *ES6 & Beyond* title of this series.
+**注意:** 这里的`toString()` 和 `[[Class]]`行为从ES5到ES6有一些变化，会在卷 *ES6 & Beyond* 中详述。
 
 ## Boxing Wrappers
 
