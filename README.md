@@ -19,6 +19,7 @@
 
 ## types & grammar
 ### [Chapter 1: Types](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch1.md)
+JS的变量没有类型，变量持有的值才有类型。
 
 ### [Chapter 2: Values](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch2.md)
 
