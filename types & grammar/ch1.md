@@ -1,41 +1,37 @@
 # You Don't Know JS: Types & Grammar
 # Chapter 1: Types
 
-Most developers would say that a dynamic language (like JS) does not have *types*. Let's see what the ES5.1 specification (http://www.ecma-international.org/ecma-262/5.1/) has to say on the topic:
+很多开发者认为向JS这样的动态语言不存在*类型*，我们先看下ES5.1规格（http://www.ecma-international.org/ecma-262/5.1/）里怎么说：
 
-> Algorithms within this specification manipulate values each of which has an associated type. The possible value types are exactly those defined in this clause. Types are further sub classified into ECMAScript language types and specification types.
+> 这个规格里的算法操作的都是关联了类型的值。语句中定义的类型正是值的类型，类型后来被归入ECMAScript语言类型和规格类型的亚类型（好绕— —||）。
 >
-> An ECMAScript language type corresponds to values that are directly manipulated by an ECMAScript programmer using the ECMAScript language. The ECMAScript language types are Undefined, Null, Boolean, String, Number, and Object.
+> 一个ECMAScript语言类型对应由程序员使用该语言操作的值，ECMAScript语言类型有：未定义，空，布尔，字符串，数字和对象。
 
-Now, if you're a fan of strongly typed (statically typed) languages, you may object to this usage of the word "type." In those languages, "type" means a whole lot *more* than it does here in JS.
+如果你是一个强语言类型的爱好者，你可能会反对这样使用“类型”，在强类型语言中，“类型”比在JS中要求严格的多。
 
-Some people say JS shouldn't claim to have "types," and they should instead be called "tags" or perhaps "subtypes".
+一些人觉得JS不应该声称有“类型”，而应该被称为“标记”或者“亚类型”。呸！我们就是要用这种粗略定义：*类型*是固有的内在的字符集，它们能够唯一代表值的行为，并使该值对引擎**和开发者**而言区别于其它值。
 
-Bah! We're going to use this rough definition (the same one that seems to drive the wording of the spec): a *type* is an intrinsic, built-in set of characteristics that uniquely identifies the behavior of a particular value and distinguishes it from other values, both to the engine **and to the developer**.
+换句话说，如果引擎和开发者认为数字`42`不同于字符串`"42"`，那么这两个值就具有不通的“类型”——`数字`和`字符串`。当你使用`42`时，你*意图*进行一些数字操作，就像做数学一样，而你使用`"42"`时，你*意图*进行一些字符串操作，就像输出页面等，**这两种值就具有了不同的类型。**
 
-In other words, if both the engine and the developer treat value `42` (the number) differently than they treat value `"42"` (the string), then those two values have different *types* -- `number` and `string`, respectively. When you use `42`, you are *intending* to do something numeric, like math. But when you use `"42"`, you are *intending* to do something string'ish, like outputting to the page, etc. **These two values have different types.**
-
-That's by no means a perfect definition. But it's good enough for this discussion. And it's consistent with how JS describes itself.
+这当然不是个完美的定义，但足够说明前面的讨论，而且于JS自己的定义也一致。
 
 # A Type By Any Other Name...
 
 Beyond academic definition disagreements, why does it matter if JavaScript has *types* or not?
+先不管学术上定义的争论，为什么JS是否有*类型*很重要？
 
-Having a proper understanding of each *type* and its intrinsic behavior is absolutely essential to understanding how to properly and accurately convert values to different types (see Coercion, Chapter 4). Nearly every JS program ever written will need to handle value coercion in some shape or form, so it's important you do so responsibly and with confidence.
+对*类型*及其底层行为的恰当理解，对正确转换值到不通类型（参考 第4章 Coercion）很关键。几乎每一个JS程序都会遇到需要处理值的强转，所以你在进行这些操作时的自信和对其负责就很重要。
 
-If you have the `number` value `42`, but you want to treat it like a `string`, such as pulling out the `"2"` as a character in position `1`, you obviously must first convert (coerce) the value from `number` to `string`.
+如果你有一个`数字``42`，但是你像把它当作`字符串`处理，比如取出位置`1`处的字符`"2"`，显然你需要先对它进行`数字`到`字符串`的强转。
 
-That seems simple enough.
+看起来貌似很简单。
 
-But there are many different ways that such coercion can happen. Some of these ways are explicit, easy to reason about, and reliable. But if you're not careful, coercion can happen in very strange and surprising ways.
+但是强转可能以不同的方式发生，有些很明显，容易分析，且可信，但是如果你不够仔细，强转的结果可能会很让你意外。强转困惑可能是JS开发者中影响最深刻的挫折之一，它经常被批评为如此*危险*甚至被认为是该语言的设计缺陷，应该被避免使用。
 
-Coercion confusion is perhaps one of the most profound frustrations for JavaScript developers. It has often been criticized as being so *dangerous* as to be considered a flaw in the design of the language, to be shunned and avoided.
-
-Armed with a full understanding of JavaScript types, we're aiming to illustrate why coercion's *bad reputation* is largely overhyped and somewhat undeserved -- to flip your perspective, to seeing coercion's power and usefulness. But first, we have to get a much better grip on values and types.
-
+通过理解JS类型来武装自己，我们的目的是澄清强转的*坏名声*其实是被夸大的不实际的，为了颠覆你的观点，为了看到强转的强大益处。但是首先，我们得把握值和类型的关键。
 ## Built-in Types
 
-JavaScript defines seven built-in types:
+JS定义了7中内建类型：
 
 * `null`
 * `undefined`
@@ -43,11 +39,11 @@ JavaScript defines seven built-in types:
 * `number`
 * `string`
 * `object`
-* `symbol` -- added in ES6!
+* `symbol` -- ES6新增！
 
-**Note:** All of these types except `object` are called "primitives".
+**注意：** 出了`object`其它类型都被叫做“原语”。
 
-The `typeof` operator inspects the type of the given value, and always returns one of seven string values -- surprisingly, there's not an exact 1-to-1 match with the seven built-in types we just listed.
+`typeof`操作符能够识别给定的值的类型，并返回7种类型之一的字符串，然而它们并不是和上面的类型一一对应的：
 
 ```js
 typeof undefined     === "undefined"; // true
@@ -60,17 +56,14 @@ typeof { life: 42 }  === "object";    // true
 typeof Symbol()      === "symbol";    // true
 ```
 
-These six listed types have values of the corresponding type and return a string value of the same name, as shown. `Symbol` is a new data type as of ES6, and will be covered in Chapter 3.
-
-As you may have noticed, I excluded `null` from the above listing. It's *special* -- special in the sense that it's buggy when combined with the `typeof` operator:
+如你所见，`null`没有被列出来，它比较特殊，尤其是当它和`typeof`一起使用时，近乎一个bug：
 
 ```js
 typeof null === "object"; // true
 ```
+如果它能返回`null`的话那就完美了，然而这种历史遗留bug已经存在太久，目前网上已经存在太多依赖于这种bug的应用，修复该bug只会引入更多的问题。
 
-It would have been nice (and correct!) if it returned `"null"`, but this original bug in JS has persisted for nearly two decades, and will likely never be fixed because there's too much existing web content that relies on its buggy behavior that "fixing" the bug would *create* more "bugs" and break a lot of web software.
-
-If you want to test for a `null` value using its type, you need a compound condition:
+如果你想检测`null`值，可以添加这样的组合条件：
 
 ```js
 var a = null;
@@ -78,17 +71,17 @@ var a = null;
 (!a && typeof a === "object"); // true
 ```
 
-`null` is the only primitive value that is "falsy" (aka false-like; see Chapter 4) but that also returns `"object"` from the `typeof` check.
+`null`是唯一`typeof`返回`"object"`但是在布尔域内是`false`的值。
 
-So what's the seventh string value that `typeof` can return?
+那么第7种`typeof`返回的值是什么呢？
 
 ```js
 typeof function a(){ /* .. */ } === "function"; // true
 ```
 
-It's easy to think that `function` would be a top-level built-in type in JS, especially given this behavior of the `typeof` operator. However, if you read the spec, you'll see it's actually a "subtype" of object. Specifically, a function is referred to as a "callable object" -- an object that has an internal `[[Call]]` property that allows it to be invoked.
+你可能会觉得`function`应该是JS中的基本内建类型，尤其是考虑到`typeof`返回的值，然而，如果你读过规格书，你就知道它只是`object`的亚类型。更具体的讲，函数是一个可以被调用的对象——一个有可以被激活的内部属性`[Call]`的对象。
 
-The fact that functions are actually objects is quite useful. Most importantly, they can have properties. For example:
+函数是对象这个事实很重要，很多时候，它们可以拥有属性，比如：
 
 ```js
 function a(b,c) {
@@ -96,31 +89,29 @@ function a(b,c) {
 }
 ```
 
-The function object has a `length` property set to the number of formal parameters it is declared with.
+上面的函数有一个`length`属性，赋值为它声明的参数个数。
 
 ```js
 a.length; // 2
 ```
 
-Since you declared the function with two formal named parameters (`b` and `c`), the "length of the function" is `2`.
-
-What about arrays? They're native to JS, so are they a special type?
+那么数组呢？它们是JS原生的，它们是否有特定的类型？
 
 ```js
 typeof [1,2,3] === "object"; // true
 ```
 
-Nope, just objects. It's most appropriate to think of them also as a "subtype" of object (see Chapter 3), in this case with the additional characteristics of being numerically indexed (as opposed to just being string-keyed like plain objects) and maintaining an automatically updated `.length` property.
+答案是否，它们也是对象。最好把它们也当作是对象的“亚类型”，使用数字索引（与普通的通过字符串为key的对象不同）的并且自动更新`length`属性的对象。
 
 ## Values as Types
 
-In JavaScript, variables don't have types -- **values have types**. Variables can hold any value, at any time.
+在JS中，变量没有类型——**值有类型**，变量可以在任何时候持有值。
 
-Another way to think about JS types is that JS doesn't have "type enforcement," in that the engine doesn't insist that a *variable* always holds values of the *same initial type* that it starts out with. A variable can, in one assignment statement, hold a `string`, and in the next hold a `number`, and so on.
+另一种理解JS类型的方式是JS没有“强制类型”，引擎不会要求*变量*一直持有*与最初类型相同*的值。一个变量可以在某个语句里持有`string`值，也能在下个语句中持有`nunber`值，等等。
 
-The *value* `42` has an intrinsic type of `number`, and its *type* cannot be changed. Another value, like `"42"` with the `string` type, can be created *from* the `number` value `42` through a process called **coercion** (see Chapter 4).
+*值*`42`有一个本质`number`类型，该类型不会改变，另一个`string`类型的值`"42"`，可以*由*`number`值`42`**强转**（见第4章）创建。
 
-If you use `typeof` against a variable, it's not asking "what's the type of the variable?" as it may seem, since JS variables have no types. Instead, it's asking "what's the type of the value *in* the variable?"
+如果对变量使用`typeof`，它不是在在询问“这个变量的类型是什么？”，而是询问“这个变量*中*的值是什么类型？“。
 
 ```js
 var a = 42;
@@ -130,17 +121,17 @@ a = true;
 typeof a; // "boolean"
 ```
 
-The `typeof` operator always returns a string. So:
+操作符`typeof`总是返回一个字符串，所以：
 
 ```js
 typeof typeof 42; // "string"
 ```
 
-The first `typeof 42` returns `"number"`, and `typeof "number"` is `"string"`.
+第一个`typeof 42`返回`"number"`，然后`typeof "number"`返回`"string"`。
 
 ### `undefined` vs "undeclared"
 
-Variables that have no value *currently*, actually have the `undefined` value. Calling `typeof` against such variables will return `"undefined"`:
+那些还没有赋值的变量，实际上默认有`undefined`值，所以使用`typeof`时会返回`"undefined"`：
 
 ```js
 var a;
@@ -157,11 +148,7 @@ typeof b; // "undefined"
 typeof c; // "undefined"
 ```
 
-It's tempting for most developers to think of the word "undefined" and think of it as a synonym for "undeclared." However, in JS, these two concepts are quite different.
-
-An "undefined" variable is one that has been declared in the accessible scope, but *at the moment* has no other value in it. By contrast, an "undeclared" variable is one that has not been formally declared in the accessible scope.
-
-Consider:
+开发者很容易弄混“未定义”和它的同义词“未声明”，在JS中，这两个概念完全不同，一个“未定义”的变量是指在可见域内已经声明的变量，但是*当前*还没有赋值，而“未声明”的变量是指在可见域内还没有被正式声明的变量。
 
 ```js
 var a;
@@ -170,9 +157,9 @@ a; // undefined
 b; // ReferenceError: b is not defined
 ```
 
-An annoying confusion is the error message that browsers assign to this condition. As you can see, the message is "b is not defined," which is of course very easy and reasonable to confuse with "b is undefined." Yet again, "undefined" and "is not defined" are very different things. It'd be nice if the browsers said something like "b is not found" or "b is not declared," to reduce the confusion!
+令人讨厌的就是浏览器在这种场景下的提示，你很容易以为“not define”意思就是“undefined”，然而并不是，这里其实把提示换为“not found“或者”not declared“会更清楚一些。
 
-There's also a special behavior associated with `typeof` as it relates to undeclared variables that even further reinforces the confusion. Consider:
+还有一个`typeof`与未声明的特殊行为需要说明一下，对一个未声明的变量使用`typeof`会返回`undefiend`，**不会报错**，像安全卫士。
 
 ```js
 var a;
@@ -182,19 +169,13 @@ typeof a; // "undefined"
 typeof b; // "undefined"
 ```
 
-The `typeof` operator returns `"undefined"` even for "undeclared" (or "not defined") variables. Notice that there was no error thrown when we executed `typeof b`, even though `b` is an undeclared variable. This is a special safety guard in the behavior of `typeof`.
-
-Similar to above, it would have been nice if `typeof` used with an undeclared variable returned "undeclared" instead of conflating the result value with the different "undefined" case.
-
 ### `typeof` Undeclared
 
-Nevertheless, this safety guard is a useful feature when dealing with JavaScript in the browser, where multiple script files can load variables into the shared global namespace.
+虽然如此，当在浏览器中处理JS时，多个脚本文件会加载变量到共享的全局命名空间里，这时安全卫士就是一个很有用的特性了。
 
-**Note:** Many developers believe there should never be any variables in the global namespace, and that everything should be contained in modules and private/separate namespaces. This is great in theory but nearly impossible in practicality; still it's a good goal to strive toward! Fortunately, ES6 added first-class support for modules, which will eventually make that much more practical.
+**注意：** 许多开发者认为不应该在全局命名空间有任何变量存在，所有的东西都应该被包含在模块和私有/分离的命名空间中。理论上很对，但是在实践中很难，但它仍然是一个前进的目标，幸运的是，ES6已经很好的支持模块化，这将会使得理论更接近实现。
 
-As a simple example, imagine having a "debug mode" in your program that is controlled by a global variable (flag) called `DEBUG`. You'd want to check if that variable was declared before performing a debug task like logging a message to the console. A top-level global `var DEBUG = true` declaration would only be included in a "debug.js" file, which you only load into the browser when you're in development/testing, but not in production.
-
-However, you have to take care in how you check for the global `DEBUG` variable in the rest of your application code, so that you don't throw a `ReferenceError`. The safety guard on `typeof` is our friend in this case.
+举个简单的栗子，假设你的程序中有一个全局变量`DEBUG`控制”调试模式“，你需要在执行一个调试任务（比如打印一个信息到控制台）前检查该变量是否被声明，一个最高层全局声明`var DEBUG = tue`包含在"debug.js"文件中，只有在开发／测试环境中才会被加载。此时，你需要在其它代码中小心的检查全局变量`DEBUG`，因为你需要保证不能抛出`ReferenceError`这样的错误，此时，安全卫士`typeof`就很重要了：
 
 ```js
 // oops, this would throw an error!
@@ -208,7 +189,7 @@ if (typeof DEBUG !== "undefined") {
 }
 ```
 
-This sort of check is useful even if you're not dealing with user-defined variables (like `DEBUG`). If you are doing a feature check for a built-in API, you may also find it helpful to check without throwing an error:
+当你不是在处理用户定义的变量（比如`DEBUG`）时，这种检查很有用，如果你是要进行内建API的特性检查，你也会发现这种保证不抛出错误的方式很有用：
 
 ```js
 if (typeof atob === "undefined") {
@@ -216,9 +197,9 @@ if (typeof atob === "undefined") {
 }
 ```
 
-**Note:** If you're defining a "polyfill" for a feature if it doesn't already exist, you probably want to avoid using `var` to make the `atob` declaration. If you declare `var atob` inside the `if` statement, this declaration is hoisted (see the *Scope & Closures* title of this series) to the top of the scope, even if the `if` condition doesn't pass (because the global `atob` already exists!). In some browsers and for some special types of global built-in variables (often called "host objects"), this duplicate declaration may throw an error. Omitting the `var` prevents this hoisted declaration.
+**注意：** 如果你是在给某个不存在的特性做"polyfill"，你可能需要避免使用`var`来声明`atob`，如果你在`if`语句中声明`var atob`，这种声明会被提升到作用域的顶部（参考系列*Scope & Closures*），即使`if`语句条件不成立不被执行，（`atob`已经存在）。在一些浏览器和一些全局内建变量的特定类型（被称为“host objects“），这种重复声明会抛出错误，所以省略`var`可以避免这种声明提升。
 
-Another way of doing these checks against global variables but without the safety guard feature of `typeof` is to observe that all global variables are also properties of the global object, which in the browser is basically the `window` object. So, the above checks could have been done (quite safely) as:
+另一种进行这种全局变量检查但是不使用安全卫士`typeof`的场景是，全局变量同时也是全局对象的属性，在浏览器中就是`window`，所以，上面的检查也可以这样写：
 
 ```js
 if (window.DEBUG) {
@@ -230,11 +211,11 @@ if (!window.atob) {
 }
 ```
 
-Unlike referencing undeclared variables, there is no `ReferenceError` thrown if you try to access an object property (even on the global `window` object) that doesn't exist.
+与引用未声明变量不同，如果你尝试访问某个对象的属性不存在（即使是全局对象`window`），它不会抛出`ReferenceError`。
 
-On the other hand, manually referencing the global variable with a `window` reference is something some developers prefer to avoid, especially if your code needs to run in multiple JS environments (not just browsers, but server-side node.js, for instance), where the global variable may not always be called `window`.
+另一方面，通过`window`手动引用全局变量有时需要开发者避免使用，尤其当你的代码需要在不同的JS环境（不仅仅是浏览器，可能在服务器端比如node.js），此时，全局变量就不一定叫做`window`了。
 
-Technically, this safety guard on `typeof` is useful even if you're not using global variables, though these circumstances are less common, and some developers may find this design approach less desirable. Imagine a utility function that you want others to copy-and-paste into their programs or modules, in which you want to check to see if the including program has defined a certain variable (so that you can use it) or not:
+技术上来讲，安全卫士`typeof`在非全局变量中也很实用，尽管这种场景并不常见，而且有些开发者会发现这种设计模式并不受欢迎。假设你有一个想让大家复制-粘贴的工具函数，此时你需要检查是否该程序中已经定义了该变量：
 
 ```js
 function doSomethingCool() {
@@ -248,7 +229,7 @@ function doSomethingCool() {
 }
 ```
 
-`doSomethingCool()` tests for a variable called `FeatureXYZ`, and if found, uses it, but if not, uses its own. Now, if someone includes this utility in their module/program, it safely checks if they've defined `FeatureXYZ` or not:
+`doSomethingCool()`检查`FeatureXYZ`，如果存在，则使用它，如果不存在则使用自定义的。如果有人在他的模块或者程序中使用这个工具，它会安全的检查是否已经定义了一个`FeatureXYZ`：
 
 ```js
 // an IIFE (see "Immediately Invoked Function Expressions"
@@ -271,9 +252,9 @@ function doSomethingCool() {
 })();
 ```
 
-Here, `FeatureXYZ` is not at all a global variable, but we're still using the safety guard of `typeof` to make it safe to check for. And importantly, here there is *no* object we can use (like we did for global variables with `window.___`) to make the check, so `typeof` is quite helpful.
+这里，`FeatureXYZ`不是一个全局变量，但是我们仍然使用了安全卫士`typeof`来检查，重要的是，这里没有类似于`window`这样的对象供我们使用，所以`typeof`很有用。
 
-Other developers would prefer a design pattern called "dependency injection," where instead of `doSomethingCool()` inspecting implicitly for `FeatureXYZ` to be defined outside/around it, it would need to have the dependency explicitly passed in, like:
+有些开发者更喜欢一种“依赖注入”的设计模式，不是通过在`doSomethingCool()`里隐式检查`FeatureXYZ`是否已经被定义，而是通过参数传入的方式：
 
 ```js
 function doSomethingCool(FeatureXYZ) {
@@ -285,16 +266,16 @@ function doSomethingCool(FeatureXYZ) {
 }
 ```
 
-There are lots of options when designing such functionality. No one pattern here is "correct" or "wrong" -- there are various tradeoffs to each approach. But overall, it's nice that the `typeof` undeclared safety guard gives us more options.
+设计这种功能有很多种方式，无所谓对错——每一种方法都有自己的权衡，但是欣慰的是检查未声明的安全卫士`typeof`给了我们更多选择。
 
 ## Review
 
-JavaScript has seven built-in *types*: `null`, `undefined`,  `boolean`, `number`, `string`, `object`, `symbol`. They can be identified by the `typeof` operator.
+JS有7个内建*类型*：`null`, `undefined`,  `boolean`, `number`, `string`, `object`, `symbol`，可以通过`typeof`来识别。
 
-Variables don't have types, but the values in them do. These types define intrinsic behavior of the values.
+变量没有类型，但是变量中的值有，这些类型决定值的行为。
 
-Many developers will assume "undefined" and "undeclared" are roughly the same thing, but in JavaScript, they're quite different. `undefined` is a value that a declared variable can hold. "Undeclared" means a variable has never been declared.
+许多开发者会认为“undefined”和“undeclared”是同样的东西，但是在JS中，它们完全不同，`undefined`是一个可以赋给变量的值，而“undeclared”是指一个变量还未被声明（不存在）。
 
-JavaScript unfortunately kind of conflates these two terms, not only in its error messages ("ReferenceError: a is not defined") but also in the return values of `typeof`, which is `"undefined"` for both cases.
+不幸的是JS有点儿合并了这两种东西，不仅仅是浏览器里的错误提示（引用未声明变量抛出错误："ReferenceError: a is not defined"），而且`typeof`返回的都是`undefined`。
 
-However, the safety guard (preventing an error) on `typeof` when used against an undeclared variable can be helpful in certain cases.
+然而，在特定场景下安全卫士（防止抛出错误）`typeof`被用于检查未声明变量时很有用。
