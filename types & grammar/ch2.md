@@ -1,13 +1,9 @@
 # You Don't Know JS: Types & Grammar
 # Chapter 2: Values
 
-`array`s, `string`s, and `number`s are the most basic building-blocks of any program, but JavaScript has some unique characteristics with these types that may either delight or confound you.
-
-Let's look at several of the built-in value types in JS, and explore how we can more fully understand and correctly leverage their behaviors.
-
+`array`、`string`以及 `number`是任何编程的最基本结构单元，但是JS又有一些自己的比较奇葩的特性，它们有时会让你很爽有时会令你挫败。我们一起来看一下JS的一些内建值类型，通过探索我们能更深入理解，并合理利用它们的特性。
 ## Arrays
-
-As compared to other type-enforced languages, JavaScript `array`s are just containers for any type of value, from `string` to `number` to `object` to even another `array` (which is how you get multidimensional `array`s).
+相对于其它强类型的语言，JS的`array`只是一个可以容纳任何类型值的容器，什么`string`啦、`number`啦、`object`啦，甚至`array`（多维数组）。
 
 ```js
 var a = [ 1, "2", [3] ];
@@ -17,7 +13,7 @@ a[0] === 1;		// true
 a[2][0] === 3;	// true
 ```
 
-You don't need to presize your `array`s (see "Arrays" in Chapter 3), you can just declare them and add values as you see fit:
+你无需另设置`array`的大小，你只需要声明数组，然后在有需要时增加值即可：
 
 ```js
 var a = [ ];
@@ -31,9 +27,9 @@ a[2] = [ 3 ];
 a.length;	// 3
 ```
 
-**Warning:** Using `delete` on an `array` value will remove that slot from the `array`, but even if you remove the final element, it does **not** update the `length` property, so be careful! We'll cover the `delete` operator itself in more detail in Chapter 5.
+**警告:** 对`array`的元素使用`delete`会删除该`array`对应位置的槽，即使最终该位置对应的元素被删除了，数组的`length`属性也**不**会更新，所以使用时要小心。我们会在第5章讨论`delete`操作符。
 
-Be careful about creating "sparse" `array`s (leaving or creating empty/missing slots):
+创建“松散”的`array`时要小心：
 
 ```js
 var a = [ ];
@@ -47,9 +43,9 @@ a[1];		// undefined
 a.length;	// 3
 ```
 
-While that works, it can lead to some confusing behavior with the "empty slots" you leave in between. While the slot appears to have the `undefined` value in it, it will not behave the same as if the slot is explicitly set (`a[1] = undefined`). See "Arrays" in Chapter 3 for more information.
+尽管上面的代码不会出错，但是“空槽”可能会引发令人困惑的行为，尽管它看起来有一个`undefined`的值，但是与直接赋值（如上面代码中a[1]=`undefined`）却不相同，第3章的“数组”会详细介绍。
 
-`array`s are numerically indexed (as you'd expect), but the tricky thing is that they also are objects that can have `string` keys/properties added to them (but which don't count toward the `length` of the `array`):
+`array`是数字索引（如你所见），但是有趣的是它们也是对象，可以有`string`键/属性（但是不会计入数组的`length`）：
 
 ```js
 var a = [ ];
@@ -62,7 +58,7 @@ a["foobar"];	// 2
 a.foobar;		// 2
 ```
 
-However, a gotcha to be aware of is that if a `string` value intended as a key can be coerced to a standard base-10 `number`, then it is assumed that you wanted to use it as a `number` index rather than as a `string` key!
+但是，这里有一点需要注意，如果键的是一个可以被强转为十进制`number`的`string`的话，它会认为你想要把那个健当作一个`number`索引：
 
 ```js
 var a = [ ];
@@ -72,15 +68,15 @@ a["13"] = 42;
 a.length; // 14
 ```
 
-Generally, it's not a great idea to add `string` keys/properties to `array`s. Use `object`s for holding values in keys/properties, and save `array`s for strictly numerically indexed values.
+一般，不推荐给`array`增加`string`类型的键／属性，键／属性的值用`object`，严格的数字索引的值用`array`。
 
 ### Array-Likes
 
-There will be occasions where you need to convert an `array`-like value (a numerically indexed collection of values) into a true `array`, usually so you can call array utilities (like `indexOf(..)`, `concat(..)`, `forEach(..)`, etc.) against the collection of values.
+有时，你需要将一个类`array`的值（按数字索引的值的集合）转为真正的`array`，然后你就可以对这些集合值使用数组的方法（比如`indexOf(..)`、`concat(..)`、`forEach(..)`）。
 
-For example, various DOM query operations return lists of DOM elements that are not true `array`s but are `array`-like enough for our conversion purposes. Another common example is when functions expose the `arguments` (`array`-like) object (as of ES6, deprecated) to access the arguments as a list.
+比如，不同的DOM查询操作返回一组DOM元素，这个组不是`array`而是类`array`很需要进行转换，另一个比较常见的例子是函数内使用`arguments`对象（ES6已经弃用）访问入参列表。
 
-One very common way to make such a conversion is to borrow the `slice(..)` utility against the value:
+一般通过`slice(..)`方法来进行转换：
 
 ```js
 function foo() {
@@ -92,9 +88,9 @@ function foo() {
 foo( "bar", "baz" ); // ["bar","baz","bam"]
 ```
 
-If `slice()` is called without any other parameters, as it effectively is in the above snippet, the default values for its parameters have the effect of duplicating the `array` (or, in this case, `array`-like).
+如果`slice()`调用时没有传入其它参数，如上面的代码示例，那么会返回一个全部元素组成的数组。
 
-As of ES6, there's also a built-in utility called `Array.from(..)` that can do the same task:
+ES6中使用`Array.from(..)`来完成该转换：
 
 ```js
 ...
@@ -102,20 +98,19 @@ var arr = Array.from( arguments );
 ...
 ```
 
-**Note:** `Array.from(..)` has several powerful capabilities, and will be covered in detail in the *ES6 & Beyond* title of this series.
+**注意：** `Array.from(..)`有好些个强大的能力，我们会在系列的*ES5 & Beyond*里介绍。
 
 ## Strings
 
-It's a very common belief that `string`s are essentially just `array`s of characters. While the implementation under the covers may or may not use `array`s, it's important to realize that JavaScript `string`s are really not the same as `array`s of characters. The similarity is mostly just skin-deep.
+一般都认为`string`就是许多字符组成的`array`，无论内部实现是否使用`array`，我们都需要意识到JS的`string`和字符`array`并不一样，相似只不是是看起来像。
 
-For example, let's consider these two values:
+比如，我们考虑这样两个值：
 
 ```js
 var a = "foo";
 var b = ["f","o","o"];
 ```
-
-Strings do have a shallow resemblance to `array`s -- `array`-likes, as above -- for instance, both of them having a `length` property, an `indexOf(..)` method (`array` version only as of ES5), and a `concat(..)` method:
+字符串确实和`array`（或类`array`）表面类型，它们都有`length`属性，有`indexOf(..)`方法（ES5中的`array`），以及`concat(..)`方法：
 
 ```js
 a.length;							// 3
@@ -134,7 +129,7 @@ a;									// "foo"
 b;									// ["f","o","o"]
 ```
 
-So, they're both basically just "arrays of characters", right? **Not exactly**:
+所以，它们都是“字符数组”，对吧？**不一定哦**：
 
 ```js
 a[1] = "O";
@@ -144,9 +139,9 @@ a; // "foo"
 b; // ["f","O","o"]
 ```
 
-JavaScript `string`s are immutable, while `array`s are quite mutable. Moreover, the `a[1]` character position access form was not always widely valid JavaScript. Older versions of IE did not allow that syntax (but now they do). Instead, the *correct* approach has been `a.charAt(1)`.
+JS的`string`是不可变的，而`array`可以改变，而且，`a[1]`访问字符串在JS中并不完全被支持，比如在老的IE浏览器中，这种写法是不允许的，需要通过`a.charAt(1)`去访问。
 
-A further consequence of immutable `string`s is that none of the `string` methods that alter its contents can modify in-place, but rather must create and return new `string`s. By contrast, many of the methods that change `array` contents actually *do* modify in-place.
+`string`的不可修改性导致它所有的方法都不是修改自身，二十重新生成一个`string`，而`array`却是直接修改自己：
 
 ```js
 c = a.toUpperCase();
@@ -158,7 +153,7 @@ b.push( "!" );
 b;			// ["f","O","o","!"]
 ```
 
-Also, many of the `array` methods that could be helpful when dealing with `string`s are not actually available for them, but we can "borrow" non-mutation `array` methods against our `string`:
+此外，许多`array`的方法可以被用来处理`string`（因为它们自己本身没有该方法），我们可以借用不可改变性+`array`方法来处理`string`：
 
 ```js
 a.join;			// undefined
@@ -172,8 +167,7 @@ var d = Array.prototype.map.call( a, function(v){
 c;				// "f-o-o"
 d;				// "F.O.O."
 ```
-
-Let's take another example: reversing a `string` (incidentally, a common JavaScript interview trivia question!). `array`s have a `reverse()` in-place mutator method, but `string`s do not:
+再举一个栗子：反转一个`string`（一个很常见的JS面试题），`array`自身就有`reverse()`方法，而`string`没有：
 
 ```js
 a.reverse;		// undefined
@@ -182,15 +176,14 @@ b.reverse();	// ["!","o","O","f"]
 b;				// ["!","o","O","f"]
 ```
 
-Unfortunately, this "borrowing" doesn't work with `array` mutators, because `string`s are immutable and thus can't be modified in place:
+然而，“借用”`array`的方法在这里不会有用，因为`string`是不可变的，无法修改自身：
 
 ```js
 Array.prototype.reverse.call( a );
 // still returns a String object wrapper (see Chapter 3)
 // for "foo" :(
 ```
-
-Another workaround (aka hack) is to convert the `string` into an `array`, perform the desired operation, then convert it back to a `string`.
+另一种变通尝试（即 hack）是将`string`转为`array`，然后调用需要的方法，再转换为`string`。
 
 ```js
 var c = a
@@ -204,11 +197,11 @@ var c = a
 c; // "oof"
 ```
 
-If that feels ugly, it is. Nevertheless, *it works* for simple `string`s, so if you need something quick-n-dirty, often such an approach gets the job done.
+不够优雅，哈哈。但是，*实现了功能*，所以如果你需要快不计较优雅不优雅，这种方法就可以搞定。
 
-**Warning:** Be careful! This approach **doesn't work** for `string`s with complex (unicode) characters in them (astral symbols, multibyte characters, etc.). You need more sophisticated library utilities that are unicode-aware for such operations to be handled accurately. Consult Mathias Bynens' work on the subject: *Esrever* (https://github.com/mathiasbynens/esrever).
+**警告：** 小心哦！这种方法在复杂（unicode）编码字符集中（astral字符、多字节字符等）**不可工作**。你需要借助更专业的可以识别unicode的工具库来完成，参考Mathias Bynens关于该主题的工作：*Esrever* (https://github.com/mathiasbynens/esrever)。
 
-The other way to look at this is: if you are more commonly doing tasks on your "strings" that treat them as basically *arrays of characters*, perhaps it's better to just actually store them as `array`s rather than as `string`s. You'll probably save yourself a lot of hassle of converting from `string` to `array` each time. You can always call `join("")` on the `array` *of characters* whenever you actually need the `string` representation.
+另一个角度看待这个问题：如果你经常需要对你的字符串进行*字符数组*操作，也许你最好将它存储为`array`而不是`string`，这样就会为你节省很多`string`转`array`的麻烦，你可以随时调用`join(..)`来将*字符*`array`转为`string`。
 
 ## Numbers
 
