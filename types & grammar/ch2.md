@@ -346,27 +346,27 @@ var onemilliononehundredthousand = 1.1E6;	// means 1.1 * 10^6
 
 ### Small Decimal Values
 
-The most (in)famous side effect of using binary floating-point numbers (which, remember, is true of **all** languages that use IEEE 754 -- not *just* JavaScript as many assume/pretend) is:
+使用二进制浮点数（不单单是JS，其他使用IEEE 754的语言都有）的最明显的缺陷是：
 
 ```js
 0.1 + 0.2 === 0.3; // false
 ```
+数学上我们知道，该语句应该是`true`，可为什么实际上是`false`嘞？
 
-Mathematically, we know that statement should be `true`. Why is it `false`?
+简单说来，在二进制浮点数里`0.1`和`0.2`并不精确，所以当它们进行加法运算时，结果并不严格等于`0.3`，`0.30000000000000004`很接近，但是接近终是不相等的。
 
-Simply put, the representations for `0.1` and `0.2` in binary floating-point are not exact, so when they are added, the result is not exactly `0.3`. It's **really** close: `0.30000000000000004`, but if your comparison fails, "close" is irrelevant.
 
-**Note:** Should JavaScript switch to a different `number` implementation that has exact representations for all values? Some think so. There have been many alternatives presented over the years. None of them have been accepted yet, and perhaps never will. As easy as it may seem to just wave a hand and say, "fix that bug already!", it's not nearly that easy. If it were, it most definitely would have been changed a long time ago.
+**注意：** JS是否应该切换到使用精确的表达值的`number`实现？一些人认为应该如此。这些年来，已经有好多可选的方法被提出来，但没有一个被接受，或许永远也不会。改变并不像握手言和说一句“已经修复了这个bug“那么简单。不然，肯定很早以前就改变了。
 
-Now, the question is, if some `number`s can't be *trusted* to be exact, does that mean we can't use `number`s at all? **Of course not.**
+现在的问题是，既然`number`无法*确保*精确，是否意味着我们不能再使用它了。**当然不是。**
 
-There are some applications where you need to be more careful, especially when dealing with fractional decimal values. There are also plenty of (maybe most?) applications that only deal with whole numbers ("integers"), and moreover, only deal with numbers in the millions or trillions at maximum. These applications have been, and always will be, **perfectly safe** to use numeric operations in JS.
+在有些处理小数的应用里，你应该当心。很多（也许绝大多数）应用处理的都是整数，或者更大的百万、万亿级别，这些应用实际上用JS处理数字是**很安全**的。
 
-What if we *did* need to compare two `number`s, like `0.1 + 0.2` to `0.3`, knowing that the simple equality test fails?
+如果我们确实需要比较两个`number`呢，比如`0.1 + 0.2`和`0.3`，我们知道直接那么比较会出问题。
 
-The most commonly accepted practice is to use a tiny "rounding error" value as the *tolerance* for comparison. This tiny value is often called "machine epsilon," which is commonly `2^-52` (`2.220446049250313e-16`) for the kind of `number`s in JavaScript.
+最被认可的方法就是使用很小的“舍入误差”作为*容差*来作比较，这个很小的值称为“机器精度“，在JS的`number`中，一般取值为`2^-52`（`2.220446049250313e-16`）。
 
-As of ES6, `Number.EPSILON` is predefined with this tolerance value, so you'd want to use it, but you can safely polyfill the definition for pre-ES6:
+ES6中，`Number.EPSILON`是一个预定义的容差值，可以直接使用，你也可以为pre-ES6进行兼容：
 
 ```js
 if (!Number.EPSILON) {
@@ -374,7 +374,7 @@ if (!Number.EPSILON) {
 }
 ```
 
-We can use this `Number.EPSILON` to compare two `number`s for "equality" (within the rounding error tolerance):
+我们可以使用`Number.EPSILON`来比较两个`number`的“相等性”（在容差范围内）：
 
 ```js
 function numbersCloseEnoughToEqual(n1,n2) {
@@ -388,11 +388,11 @@ numbersCloseEnoughToEqual( a, b );					// true
 numbersCloseEnoughToEqual( 0.0000001, 0.0000002 );	// false
 ```
 
-The maximum floating-point value that can be represented is roughly `1.798e+308` (which is really, really, really huge!), predefined for you as `Number.MAX_VALUE`. On the small end, `Number.MIN_VALUE` is roughly `5e-324`, which isn't negative but is really close to zero!
+最大浮点数可以粗略表示为`1.798e+308`（已经很大很大了！），预定义为`Number.MAX_VALUE`，另一面，`Number.MIN_VALUE`约等于`5e-324，表示最接近0的最小正数。
 
 ### Safe Integer Ranges
 
-Because of how `number`s are represented, there is a range of "safe" values for the whole `number` "integers", and it's significantly less than `Number.MAX_VALUE`.
+鉴于`number`的表示方式，JS的“整数”有一个安全范围，远远小于`Number.MAX_VALUE`。
 
 The maximum integer that can "safely" be represented (that is, there's a guarantee that the requested value is actually representable unambiguously) is `2^53 - 1`, which is `9007199254740991`. If you insert your commas, you'll see that this is just over 9 quadrillion. So that's pretty darn big for `number`s to range up to.
 
@@ -404,7 +404,7 @@ Numeric operations on such large ID `number` values (besides comparison, which w
 
 ### Testing for Integers
 
-To test if a value is an integer, you can use the ES6-specified `Number.isInteger(..)`:
+可以通过ES6定义的方法`Number.isInteger(..)`来验证是否是整数：
 
 ```js
 Number.isInteger( 42 );		// true
@@ -412,7 +412,7 @@ Number.isInteger( 42.000 );	// true
 Number.isInteger( 42.3 );	// false
 ```
 
-To polyfill `Number.isInteger(..)` for pre-ES6:
+兼容pre-ES6的`Number.isInteger(..)`：
 
 ```js
 if (!Number.isInteger) {
@@ -422,7 +422,7 @@ if (!Number.isInteger) {
 }
 ```
 
-To test if a value is a *safe integer*, use the ES6-specified `Number.isSafeInteger(..)`:
+通过ES6定义的方法`Number.isSafeInteger(..)`来验证是否是*安全整数*：
 
 ```js
 Number.isSafeInteger( Number.MAX_SAFE_INTEGER );	// true
@@ -430,7 +430,7 @@ Number.isSafeInteger( Math.pow( 2, 53 ) );			// false
 Number.isSafeInteger( Math.pow( 2, 53 ) - 1 );		// true
 ```
 
-To polyfill `Number.isSafeInteger(..)` in pre-ES6 browsers:
+同样的，pre-ES6兼容`Number.isSafeInteger(..)`：
 
 ```js
 if (!Number.isSafeInteger) {
@@ -564,11 +564,12 @@ The `number` type includes several special values. We'll take a look at each in 
 
 #### The Not Number, Number
 
-Any mathematic operation you perform without both operands being `number`s (or values that can be interpreted as regular `number`s in base 10 or base 16) will result in the operation failing to produce a valid `number`, in which case you will get the `NaN` value.
+任何数学运算如果两边的操作数不同时为`number`（或者可以被转义为10进制或16进制的一般`number`），那么运算会失败，此时你会得到一个`NaN`值。
 
-`NaN` literally stands for "not a `number`", though this label/description is very poor and misleading, as we'll see shortly. It would be much more accurate to think of `NaN` as being "invalid number," "failed number," or even "bad number," than to think of it as "not a number."
 
-For example:
+`NaN`字面意思是“不是一个`number`“，这种描述很具有误导性，如果将它看作一个”无效数字“，”失败的数字“甚至”糟糕的数字“，都比”非数“更精确。
+
+如示例：
 
 ```js
 var a = 2 / "foo";		// NaN
@@ -576,7 +577,7 @@ var a = 2 / "foo";		// NaN
 typeof a === "number";	// true
 ```
 
-In other words: "the type of not-a-number is 'number'!" Hooray for confusing names and semantics.
+也就是说：“非数的类型居然是‘数字’！“，为这迷惑人的名字和语义点赞。
 
 `NaN` is a kind of "sentinel value" (an otherwise normal value that's assigned a special meaning) that represents a special kind of error condition within the `number` set. The error condition is, in essence: "I tried to perform a mathematic operation but failed, so here's the failed `number` result instead."
 
