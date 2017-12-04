@@ -83,7 +83,7 @@ Object.prototype.toString.call( true );		// "[object Boolean]"
 
 ## Boxing Wrappers
 
-These object wrappers serve a very important purpose. Primitive values don't have properties or methods, so to access `.length` or `.toString()` you need an object wrapper around the value. Thankfully, JS will automatically *box* (aka wrap) the primitive value to fulfill such accesses.
+对象封装起器有个很重要的作用，原型值没有属性或方法，为了访问`.length`或`.toString()`，你需要一个该值的对象封装器，很庆幸，JS会自动的对原型值*装箱*来实现这种访问。
 
 ```js
 var a = "abc";
@@ -91,18 +91,17 @@ var a = "abc";
 a.length; // 3
 a.toUpperCase(); // "ABC"
 ```
+所以，如果你想通过字符串值来访问属性或方法，比如在`for`循环的条件`i < a.length`，可能你会觉的一开始就使用对象形式，这样JS引擎就不再需要隐式的为你生成。
 
-So, if you're going to be accessing these properties/methods on your string values regularly, like a `i < a.length` condition in a `for` loop for instance, it might seem to make sense to just have the object form of the value from the start, so the JS engine doesn't need to implicitly create it for you.
+但是，这种想法很糟糕。浏览器很早以前就对如`.length`这些常见情况进行了性能优化，如果你尝试上面的直接使用对象形式的“预优化”，你的程序反倒会*变慢*。
 
-But it turns out that's a bad idea. Browsers long ago performance-optimized the common cases like `.length`, which means your program will *actually go slower* if you try to "preoptimize" by directly using the object form (which isn't on the optimized path).
-
-In general, there's basically no reason to use the object form directly. It's better to just let the boxing happen implicitly where necessary. In other words, never do things like `new String("abc")`, `new Number(42)`, etc -- always prefer using the literal primitive values `"abc"` and `42`.
+一般的，没有理由直接使用对象形式，最好的方式就是让装箱在必要时隐式的发生。换句话说，不要用类似`new String("abc")`、`new Number(42)`等形式，直接使用诸如`"abc"`和`42`这样的字面原值。
 
 ### Object Wrapper Gotchas
 
-There are some gotchas with using the object wrappers directly that you should be aware of if you *do* choose to ever use them.
+当你必须要使用对象形式时，需要注意一些陷阱。
 
-For example, consider `Boolean` wrapped values:
+比如，`Boolean`封装值：
 
 ```js
 var a = new Boolean( false );
@@ -112,9 +111,9 @@ if (!a) {
 }
 ```
 
-The problem is that you've created an object wrapper around the `false` value, but objects themselves are "truthy" (see Chapter 4), so using the object behaves oppositely to using the underlying `false` value itself, which is quite contrary to normal expectation.
+问题是，你创建了一个持有`false`值的对象，但是对象本身是“真值”（见第4章），所以使用对象形式的行为和直接使用`false`值本身会出现截然相反的结果。
 
-If you want to manually box a primitive value, you can use the `Object(..)` function (no `new` keyword):
+如果你手动封装原型值，可以使用函数`Object(..)`（注意没有`new`关键字）：
 
 ```js
 var a = "abc";
@@ -132,11 +131,11 @@ Object.prototype.toString.call( b ); // "[object String]"
 Object.prototype.toString.call( c ); // "[object String]"
 ```
 
-Again, using the boxed object wrapper directly (like `b` and `c` above) is usually discouraged, but there may be some rare occasions you'll run into where they may be useful.
+再次强调，不推荐直接使用装箱后的对象（比如上例中的`b`和`c`），但在一些特殊场景下，它们可能会非常有用。
 
 ## Unboxing
 
-If you have an object wrapper and you want to get the underlying primitive value out, you can use the `valueOf()` method:
+如果你有一个装箱后的对象，你想要获取内部的基础值，可以使用`valueOf()`方法：
 
 ```js
 var a = new String( "abc" );
@@ -148,7 +147,7 @@ b.valueOf(); // 42
 c.valueOf(); // true
 ```
 
-Unboxing can also happen implicitly, when using an object wrapper value in a way that requires the primitive value. This process (coercion) will be covered in more detail in Chapter 4, but briefly:
+当需要获取装箱的对象的基础值时，拆箱也可以隐式的发生，这个在第四章会详细介绍，这里可以简单看下例子：
 
 ```js
 var a = new String( "abc" );
@@ -160,9 +159,9 @@ typeof b; // "string"
 
 ## Natives as Constructors
 
-For `array`, `object`, `function`, and regular-expression values, it's almost universally preferred that you use the literal form for creating the values, but the literal form creates the same sort of object as the constructor form does (that is, there is no nonwrapped value).
+对`array`, `object`, `function`以及正则表达式值，几乎约定俗成的你会使用字面形式来创建值，但是字面形式创建的对象和通过构造器创建的是完全一样的（也就是说，不存在非装箱值）。
 
-Just as we've seen above with the other natives, these constructor forms should generally be avoided, unless you really know you need them, mostly because they introduce exceptions and gotchas that you probably don't really *want* to deal with.
+如上面其它基础类型，这种构造器形式应该被废弃，除非你很确定你需要它们，因为很多时候它们只会带来你完全不愿意去处理的意外和陷阱。
 
 ### `Array(..)`
 
@@ -174,17 +173,18 @@ var b = [1, 2, 3];
 b; // [1, 2, 3]
 ```
 
-**Note:** The `Array(..)` constructor does not require the `new` keyword in front of it. If you omit it, it will behave as if you have used it anyway. So `Array(1,2,3)` is the same outcome as `new Array(1,2,3)`.
+**注意：** `Array(..)`构造器不需要`new`关键字，如果你省略它，它会默认你之前已经使用过它了，所以`Array(1,2,3)`和`new Array(1,2,3)`的结果完全一样。
 
-The `Array` constructor has a special form where if only one `number` argument is passed, instead of providing that value as *contents* of the array, it's taken as a length to "presize the array" (well, sorta).
+`Array`构造器有一种特殊形式，当入参只有一个`numebr`时，它会把它当作数组的长度，并且重新设置数组大小，而不是把它当作数组内容。
 
-This is a terrible idea. Firstly, you can trip over that form accidentally, as it's easy to forget.
+可怕呐！你很可能因为忘记而使用这种形式，然后在这里摔倒。
 
-But more importantly, there's no such thing as actually presizing the array. Instead, what you're creating is an otherwise empty array, but setting the `length` property of the array to the numeric value specified.
+更重要的是，根本不存在重新设置数组大小，实际情况是，你创建了一个空数组，然后设置了`length`属性值为特定的数字。
 
-An array that has no explicit values in its slots, but has a `length` property that *implies* the slots exist, is a weird exotic type of data structure in JS with some very strange and confusing behavior. The capability to create such a value comes purely from old, deprecated, historical functionalities ("array-like objects" like the `arguments` object).
+一个槽内没有特定值的数组，但却有`length`属性*暗示*槽是存在的，这种数据结构在JS中的行为很奇葩。能创建这种值，完全因为旧的已经弃用的历史的功能。（与a`rgument`类似的“类数组对象“）。
 
-**Note:** An array with at least one "empty slot" in it is often called a "sparse array."
+**注意：** 一个包含至少一个空槽的数组称为“松散数组”。
+
 
 It doesn't help matters that this is yet another example where browser developer consoles vary on how they represent such an object, which breeds more confusion.
 
