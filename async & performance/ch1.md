@@ -646,9 +646,9 @@ ajax( "http://some.url.2", bar );
 
 ### Cooperation
 
-Another expression of concurrency coordination is called "cooperative concurrency." Here, the focus isn't so much on interacting via value sharing in scopes (though that's obviously still allowed!). The goal is to take a long-running "process" and break it up into steps or batches so that other concurrent "processes" have a chance to interleave their operations into the event loop queue.
+另一个并发调整的方式就是“协同并发”，这里的重点不在于作用域中共享值导致的互相作用（尽管那个仍然是被允许的），将长时运行的“进程”划分为步骤或者批次，从而其它并发“进程”有机会把它们的操作交叉到事件轮询队列里。
 
-For example, consider an Ajax response handler that needs to run through a long list of results to transform the values. We'll use `Array#map(..)` to keep the code shorter:
+举个栗子，有一个Ajax响应处理器，它需要遍历一个长的结果列表并转换值，我们将使用`Array#map(..)`来保证代码简短：
 
 ```js
 var res = [];
@@ -669,13 +669,13 @@ ajax( "http://some.url.1", response );
 ajax( "http://some.url.2", response );
 ```
 
-If `"http://some.url.1"` gets its results back first, the entire list will be mapped into `res` all at once. If it's a few thousand or less records, this is not generally a big deal. But if it's say 10 million records, that can take a while to run (several seconds on a powerful laptop, much longer on a mobile device, etc.).
+如果`"http://some.url.1"`首先拿到了结果，整个列表会立刻被映射到`res`里，如果有几千的记录，没什么大不了的，但是如果有千万记录，那将会消耗一定的时间（一个强大的笔记本大概需要几秒钟，移动设备需要更多，等等）。
 
-While such a "process" is running, nothing else in the page can happen, including no other `response(..)` calls, no UI updates, not even user events like scrolling, typing, button clicking, and the like. That's pretty painful.
+尽管这个“进程”在执行，但是页面上没有任何变化，包括没有其它`response(..)`被调用，没有UI更新，甚至没有用户事件比如滚动、输入、按钮点击等，这会很让人不愉快。
 
-So, to make a more cooperatively concurrent system, one that's friendlier and doesn't hog the event loop queue, you can process these results in asynchronous batches, after each one "yielding" back to the event loop to let other waiting events happen.
+所以，为了更协同的并发系统，需要这样一个更加友好的，不会挂起事件轮询队列的，你可以异步分批次的处理结果，当一个完成后，通知事件轮询队列，让其它事件继续处理。
 
-Here's a very simple approach:
+这里有一个简单的方法：
 
 ```js
 var res = [];
@@ -707,31 +707,33 @@ ajax( "http://some.url.1", response );
 ajax( "http://some.url.2", response );
 ```
 
-We process the data set in maximum-sized chunks of 1,000 items. By doing so, we ensure a short-running "process," even if that means many more subsequent "processes," as the interleaving onto the event loop queue will give us a much more responsive (performant) site/app.
+我们将数据集处理成最大1000个元素的块，这样，我们保证了短时“进程”，尽管这意味着许多随后的“进程”，随着交叉到事件轮询队列，为我们提供了更具有响应（性能）的网站／应用。
 
-Of course, we're not interaction-coordinating the ordering of any of these "processes," so the order of results in `res` won't be predictable. If ordering was required, you'd need to use interaction techniques like those we discussed earlier, or ones we will cover in later chapters of this book.
+当然，我们没有调整交互来改变这些“进程”的顺序，所以`res`里结果的顺序也是不可预测出的，如果需要顺序，那就需要交互技巧比如我们前面提到的，活着我们在后续章节会涉及。
 
-We use the `setTimeout(..0)` (hack) for async scheduling, which basically just means "stick this function at the end of the current event loop queue."
+我们使用`setTimeout(..0)`（hack）来实现异步调度，基本上意味着“将这个函数放到当前事件轮询队列的末尾”。
 
-**Note:** `setTimeout(..0)` is not technically inserting an item directly onto the event loop queue. The timer will insert the event at its next opportunity. For example, two subsequent `setTimeout(..0)` calls would not be strictly guaranteed to be processed in call order, so it *is* possible to see various conditions like timer drift where the ordering of such events isn't predictable. In Node.js, a similar approach is `process.nextTick(..)`. Despite how convenient (and usually more performant) it would be, there's not a single direct way (at least yet) across all environments to ensure async event ordering. We cover this topic in more detail in the next section.
+**注意：** `setTimeout(..0)`严格来讲不是直接把元素放到事件轮询队列里，定时器会在它下一次被执行时插入该事件。举个栗子，两个随后的`setTimeout(..0)`调用实际上无法保证会被按照调用顺序来处理，所以你会看到像这种定时器驱动的不同条件下，事件的执行顺序时不可预测的。在Node.js里，类似的方法是`process.nextTick(..)`。不论它多么方便（通常也性能更好），没有一个直接的方法（至少现在还没有）可以跨环境保证异步事件的顺序，下一节我们会讨论这块儿的细节。
 
 ## Jobs
 
-As of ES6, there's a new concept layered on top of the event loop queue, called the "Job queue." The most likely exposure you'll have to it is with the asynchronous behavior of Promises (see Chapter 3).
+到了ES6，出现了在事件轮询队列基础上的新概念，叫做“作业队列“。通过使用Promise的异步特性（见第3章），你会全面接触到它。
 
-Unfortunately, at the moment it's a mechanism without an exposed API, and thus demonstrating it is a bit more convoluted. So we're going to have to just describe it conceptually, such that when we discuss async behavior with Promises in Chapter 3, you'll understand how those actions are being scheduled and processed.
+可惜，到目前，它还只是一个没有暴露API的原理，说明它还是有点儿复杂的。所以我们将会从概念上描述它，在第3章通过Promise来讲解异步特性时，你会理解这些活动是如何计划和处理的。
 
+所以，我发现理解“作业队列”的最好方式就是，它是在事件轮询队列里每一次tick里会挂断的队列。确定的隐含异步的活动在一次事件论序tick里，不会导致整个事件被添加到事件轮询队列，而是添加一个元素（即作业）到当前tick的作业队列。
 So, the best way to think about this that I've found is that the "Job queue" is a queue hanging off the end of every tick in the event loop queue. Certain async-implied actions that may occur during a tick of the event loop will not cause a whole new event to be added to the event loop queue, but will instead add an item (aka Job) to the end of the current tick's Job queue.
 
+就好比说：“哦，这里有一些我*一会儿*要做的事情，但是确保在它在其它事件之前发生。”
 It's kinda like saying, "oh, here's this other thing I need to do *later*, but make sure it happens right away before anything else can happen."
 
-Or, to use a metaphor: the event loop queue is like an amusement park ride, where once you finish the ride, you have to go to the back of the line to ride again. But the Job queue is like finishing the ride, but then cutting in line and getting right back on.
+或者，使用比喻：事件轮询队列就像游乐场，一旦你完成了一次，你必须回到队伍的最后面重新开始，而作业队列就好像完成一次，但是插入队伍，恢复正常。
 
-A Job can also cause more Jobs to be added to the end of the same queue. So, it's theoretically possible that a Job "loop" (a Job that keeps adding another Job, etc.) could spin indefinitely, thus starving the program of the ability to move on to the next event loop tick. This would conceptually be almost the same as just expressing a long-running or infinite loop (like `while (true) ..`) in your code.
+一个作业可以导致更多的作业被添加到同一队列，所以，理论上一个作业可能无限“循环”（一个作业持续添加另一个作业，等等），这样就阻止了程序前进到下一个事件轮询tick。这个在概念上和长时间运行或者无限循环（比如`while(true) ..`）是相同的。
 
-Jobs are kind of like the spirit of the `setTimeout(..0)` hack, but implemented in such a way as to have a much more well-defined and guaranteed ordering: **later, but as soon as possible**.
+作业有点儿像`setTimeout(..0)`hack，但是实施时却是这样一种良好定义并且保证顺序的方式：**随后，但是尽快**。
 
-Let's imagine an API for scheduling Jobs (directly, without hacks), and call it `schedule(..)`. Consider:
+让我们假设一个调度作业的API（直接的，无须hack），并且计作`schedule(..)`，如：
 
 ```js
 console.log( "A" );
@@ -750,19 +752,19 @@ schedule( function(){
 } );
 ```
 
-You might expect this to print out `A B C D`, but instead it would print out `A C D B`, because the Jobs happen at the end of the current event loop tick, and the timer fires to schedule for the *next* event loop tick (if available!).
+你可能会期望输出`A B C D`，但实际上输出的时`A C D B`，因为作业发生在当前事件轮询tick的末尾，当定时器触发去调度*下一个*事件轮询tick（如果有的话！）。
 
-In Chapter 3, we'll see that the asynchronous behavior of Promises is based on Jobs, so it's important to keep clear how that relates to event loop behavior.
+在第3章，我们会看到Promises的异步特性是基于作业的，所以搞清楚它和事件轮询的关系很重要。
 
 ## Statement Ordering
 
-The order in which we express statements in our code is not necessarily the same order as the JS engine will execute them. That may seem like quite a strange assertion to make, so we'll just briefly explore it.
+我们写在代码中的语句顺序不一定就是JS引擎的执行顺序，这似乎是一个很奇怪的言论，所以我们来简单的探索一下。
 
-But before we do, we should be crystal clear on something: the rules/grammar of the language (see the *Types & Grammar* title of this book series) dictate a very predictable and reliable behavior for statement ordering from the program point of view. So what we're about to discuss are **not things you should ever be able to observe** in your JS program.
+在这之前，我们应该搞清楚一些事情：这门语言的规则／语法（见本系列中*Types & Grammer*那本书）使得语句的顺序从编程角度来讲是可预测且可信赖的行为成为可能。所以我们将要讨论的不是你在JS程序里**看到的**。
 
-**Warning:** If you are ever able to *observe* compiler statement reordering like we're about to illustrate, that'd be a clear violation of the specification, and it would unquestionably be due to a bug in the JS engine in question -- one which should promptly be reported and fixed! But it's vastly more common that you *suspect* something crazy is happening in the JS engine, when in fact it's just a bug (probably a "race condition"!) in your own code -- so look there first, and again and again. The JS debugger, using breakpoints and stepping through code line by line, will be your most powerful tool for sniffing out such bugs in *your code*.
+**警告：** 如果你曾经*观察*过像我们将要说明的被编译器重排序的语句，那是对规格书的违背，毫无疑问时因为JS引擎的bug，应该立即被报告并且修复！但是很可能是你*怀疑*一些疯狂的事情发生在JS引擎，实际上只不过时你代码里的bug（可能就是一个“竞态条件”），所以仔细的看看。JS调试器，使用断点和一行行的步进，会是很强大的对*你代码*里的bug的嗅探工具。
 
-Consider:
+思考：
 
 ```js
 var a, b;
@@ -776,11 +778,11 @@ b = b + 1;
 console.log( a + b ); // 42
 ```
 
-This code has no expressed asynchrony to it (other than the rare `console` async I/O discussed earlier!), so the most likely assumption is that it would process line by line in top-down fashion.
+这段代码里没有异步表达（也没有像前面提到的`console`异步I/O的竞争），所以大多数可能假设，它会按行从上执行到下。
 
-But it's *possible* that the JS engine, after compiling this code (yes, JS is compiled -- see the *Scope & Closures* title of this book series!) might find opportunities to run your code faster by rearranging (safely) the order of these statements. Essentially, as long as you can't observe the reordering, anything's fair game.
+但是*可能*JS引擎，在编译这段代码（是的，JS会被编译——见系列中那本名为*Scope & Closure*的书）后，发现可以通过（安全地）重新排列语句的顺序让你的代码运行的更快。本质上，只要你无法观察重排序，所有的事情都是公平的。
 
-For example, the engine might find it's faster to actually execute the code like this:
+举个栗子，引擎发现如果代码这么执行会更快：
 
 ```js
 var a, b;
@@ -794,7 +796,7 @@ b++;
 console.log( a + b ); // 42
 ```
 
-Or this:
+或者这样：
 
 ```js
 var a, b;
@@ -805,7 +807,7 @@ b = 31;
 console.log( a + b ); // 42
 ```
 
-Or even:
+或者甚至这样：
 
 ```js
 // because `a` and `b` aren't used anymore, we can
@@ -813,9 +815,9 @@ Or even:
 console.log( 42 ); // 42
 ```
 
-In all these cases, the JS engine is performing safe optimizations during its compilation, as the end *observable* result will be the same.
+在所有这些情况下，JS引擎在编译时会进行安全的优化，最终*可观察的*结果是一样的。
 
-But here's a scenario where these specific optimizations would be unsafe and thus couldn't be allowed (of course, not to say that it's not optimized at all):
+但是在这种场景下，上面的这些特定的优化可能并不安全，从而不被允许（废话，那样的话就不是优化了）：
 
 ```js
 var a, b;
@@ -832,9 +834,10 @@ b = b + 1;
 console.log( a + b ); // 42
 ```
 
+其它的例子中，编译器重排序后会生成可观察到的副作用（从而不会被允许）包括任何函数调用的副作用（甚至getter函数），活着ES6代理对象（见*ES6 & Beyond*那本书）。
 Other examples where the compiler reordering could create observable side effects (and thus must be disallowed) would include things like any function call with side effects (even and especially getter functions), or ES6 Proxy objects (see the *ES6 & Beyond* title of this book series).
 
-Consider:
+思考：
 
 ```js
 function foo() {
@@ -861,7 +864,7 @@ b += c.bar;				// 11
 console.log( a + b );	// 42
 ```
 
-If it weren't for the `console.log(..)` statements in this snippet (just used as a convenient form of observable side effect for the illustration), the JS engine would likely have been free, if it wanted to (who knows if it would!?), to reorder the code to:
+如果不是`console.log(..)`语句（只是为了方便表示可观察的形式），JS引擎很可能会或者已经重排列了代码：
 
 ```js
 // ...
@@ -872,18 +875,18 @@ b = 30 + c.bar;
 // ...
 ```
 
-While JS semantics thankfully protect us from the *observable* nightmares that compiler statement reordering would seem to be in danger of, it's still important to understand just how tenuous a link there is between the way source code is authored (in top-down fashion) and the way it runs after compilation.
+尽管JS机制保护我们免受*可观察*噩梦，因编译器重排序语句，理解源代码编写和编译后的运行之间的联系多么薄弱很重要。
 
-Compiler statement reordering is almost a micro-metaphor for concurrency and interaction. As a general concept, such awareness can help you understand async JS code flow issues better.
+编译器语句重排序几乎是并发和互相影响的微隐喻，作为一个普遍概念，清楚它可以帮助你更好的理解异步JS代码流里的问题。
 
 ## Review
 
-A JavaScript program is (practically) always broken up into two or more chunks, where the first chunk runs *now* and the next chunk runs *later*, in response to an event. Even though the program is executed chunk-by-chunk, all of them share the same access to the program scope and state, so each modification to state is made on top of the previous state.
+JS程序通常划分为两个或更多的块，第一个块运行在*当前*其他的块作为事件响应在*后来*运行。即使程序是块接着块执行的，它们共享同样的程序作用域和状态，所以每一个状态地改变都是基于前一个状态。
 
-Whenever there are events to run, the *event loop* runs until the queue is empty. Each iteration of the event loop is a "tick." User interaction, IO, and timers enqueue events on the event queue.
+无论何时，只要有事件在运行，那么*事件轮询*就会一直运行到队列为空。每一个事件轮询的迭代就是一个"tick"。UI、IO和定时器给事件队加入事件。
 
-At any given moment, only one event can be processed from the queue at a time. While an event is executing, it can directly or indirectly cause one or more subsequent events.
+在任何给定时刻，一次只能有一个事件可以被处理，当一个事件被执行时，它可能直接或间接的触发一个或多个后续的事件。
 
-Concurrency is when two or more chains of events interleave over time, such that from a high-level perspective, they appear to be running *simultaneously* (even though at any given moment only one event is being processed).
+并发是当两个或多个事件链随着时间交织到了一起，这样从高层级去看，它们似乎是*同时*在执行（即使特定的事件一次只有一个事件在被处理）。
 
-It's often necessary to do some form of interaction coordination between these concurrent "processes" (as distinct from operating system processes), for instance to ensure ordering or to prevent "race conditions." These "processes" can also *cooperate* by breaking themselves into smaller chunks and to allow other "process" interleaving.
+通常很有必要针对并发“进程”（和操作系统的进程明显不同）进行一些形式的交互调整，比如为了保证执行顺序或者避免“竞态条件”，这些“进程”可以通过划分成更小的块来*协同*从而允许其它“进程”插入。

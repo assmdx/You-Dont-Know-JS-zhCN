@@ -35,6 +35,6 @@ JS的变量没有类型，变量持有的值才有类型。
 
 ## async & performance
 
-### [Asynchrony: Now & Later](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/async%20%26%20performance/ch1.md)
+### [Chapter 1: Asynchrony: Now & Later](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/async%20%26%20performance/ch1.md)
 
 这一章主要讲解异步概念以及常见的并发处理手段。
