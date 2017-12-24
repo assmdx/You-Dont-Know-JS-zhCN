@@ -32,3 +32,9 @@ JS的变量没有类型，变量持有的值才有类型。
 ### [Appendix A: Mixed Environment JavaScript](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/apA.md)
 
 ### [Appendix B: Thank You's!](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/apB.md)
+
+## async & performance
+
+### [Asynchrony: Now & Later](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/async%20%26%20performance/ch1.md)
+
+这一章主要讲解异步概念以及常见的并发处理手段。
