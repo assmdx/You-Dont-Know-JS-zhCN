@@ -1,19 +1,19 @@
 # You Don't Know JS: Async & Performance
 # Chapter 2: Callbacks
 
-In Chapter 1, we explored the terminology and concepts around asynchronous programming in JavaScript. Our focus is on understanding the single-threaded (one-at-a-time) event loop queue that drives all "events" (async function invocations). We also explored various ways that concurrency patterns explain the relationships (if any!) between *simultaneously* running chains of events, or "processes" (tasks, function calls, etc.).
+在第1章，我们探索了JS编程里的异步概念。我们着重于理解单线程下的事件轮询队列驱动事件（异步函数调用）。我们也探索了不同并发模式，它们解释了*同步*事件运行链和“进程”（任务、函数调用等）的关系。
 
-All our examples in Chapter 1 used the function as the individual, indivisible unit of operations, whereby inside the function, statements run in predictable order (above the compiler level!), but at the function-ordering level, events (aka async function invocations) can happen in a variety of orders.
+第1章的所有例子都使用函数作为个人的最小的的操作单元，即函数中的语句是按照预期的顺序执行（编译器级别的上一层），但是在函数顺序级别，事件（即异步函数调用）发生的顺序是可变的。
 
-In all these cases, the function is acting as a "callback," because it serves as the target for the event loop to "call back into" the program, whenever that item in the queue is processed.
+在所有的场景下，函数被作为一个“回调”，因为它的角色是事件轮训“召回”到程序里的目标，只要它在队列里就会被处理。
 
-As you no doubt have observed, callbacks are by far the most common way that asynchrony in JS programs is expressed and managed. Indeed, the callback is the most fundamental async pattern in the language.
+你也确实看到了，回调是目前为止JS编程里最普通的异步表达和管理方式，的确，回调是这门语言里大多数异步模式的基础。
 
-Countless JS programs, even very sophisticated and complex ones, have been written upon no other async foundation than the callback (with of course the concurrency interaction patterns we explored in Chapter 1). The callback function is the async work horse for JavaScript, and it does its job respectably.
+无数JS程序，即使是精细又复杂的那些，也都是把回调当作异步基础的（当然包括我们在第1章里探索的并发交互模式），回调函数是JS异步主力，并且工作的很好。
 
-Except... callbacks are not without their shortcomings. Many developers are excited by the *promise* (pun intended!) of better async patterns. But it's impossible to effectively use any abstraction if you don't understand what it's abstracting, and why.
+除了……回调并不是没有缺点，许多开发者激动于更好的异步模式*promises*（双关语！），但是如果你不理解它的概念和原理你不能有效的使用任何概念。
 
-In this chapter, we will explore a couple of those in depth, as motivation for why more sophisticated async patterns (explored in subsequent chapters of this book) are necessary and desired.
+这一章，我们会深入探索其中几个，从而解释为何更成熟的异步模式是必要的。
 
 ## Continuations
 
