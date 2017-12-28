@@ -74,19 +74,19 @@ setTimeout( function(){
 
 ### Doing Versus Planning
 
-OK, so our brains can be thought of as operating in single-threaded event loop queue like ways, as can the JS engine. That sounds like a good match.
+所以，我们的大脑可以被认为是单线程的事件轮询队列，JS引擎也是，这听起来好像很配。
 
-But we need to be more nuanced than that in our analysis. There's a big, observable difference between how we plan various tasks, and how our brains actually operate those tasks.
+但我们需要注意那些比我们所分析的更细微的地方，我们计划任务与我们大脑实际处理这些任务有可观测的大不同。
 
-Again, back to the writing of this text as my metaphor. My rough mental outline plan here is to keep writing and writing, going sequentially through a set of points I have ordered in my thoughts. I don't plan to have any interruptions or nonlinear activity in this writing. But yet, my brain is nevertheless switching around all the time.
+又一次，我写下这样的比喻，我此刻大略的计划是一直写，依次完成我想到的几点。我没有打算让任何中断或者非线性的活动插入进来，但是我的大脑总是一直在切换。
 
-Even though at an operational level our brains are async evented, we seem to plan out tasks in a sequential, synchronous way. "I need to go to the store, then buy some milk, then drop off my dry cleaning."
+尽管在某种程度上来讲，我们的大脑是异步事件驱动，但我们似乎是顺序同步的计划任务。“我需要去商场，买些牛奶，然后去干洗店洗衣“。
 
-You'll notice that this higher level thinking (planning) doesn't seem very async evented in its formulation. In fact, it's kind of rare for us to deliberately think solely in terms of events. Instead, we plan things out carefully, sequentially (A then B then C), and we assume to an extent a sort of temporal blocking that forces B to wait on A, and C to wait on B.
+你可能发现这种高等级的想法（计划）并不是很异步，实际上，我们一般很少刻意以事件的形式来思考。相反，我们仔细顺序地计划事情（A，然后B，然后C），假设从某种程度上有一种暂时的阻力，让B等待A。
 
-When a developer writes code, they are planning out a set of actions to occur. If they're any good at being a developer, they're **carefully planning** it out. "I need to set `z` to the value of `x`, and then `x` to the value of `y`," and so forth.
+当一个开发者写代码时，他们在计划一系列要发生的行为。如果他们够专业，他们会**仔细的计划**。“我需要把`x`的值赋给`z`，然后赋给`y`“，等等。
 
-When we write out synchronous code, statement by statement, it works a lot like our errands to-do list:
+当我们写同步代码时，一条语句接着一条，就好像我们的待办事项：
 
 ```js
 // swap `x` and `y` (via temp variable `z`)
@@ -95,29 +95,29 @@ x = y;
 y = z;
 ```
 
-These three assignment statements are synchronous, so `x = y` waits for `z = x` to finish, and `y = z` in turn waits for `x = y` to finish. Another way of saying it is that these three statements are temporally bound to execute in a certain order, one right after the other. Thankfully, we don't need to be bothered with any async evented details here. If we did, the code gets a lot more complex, quickly!
+这三条语句是同步的，所以`x = y`等待`z = x`执行完毕，`y = z`等待`x = y`完毕，即这三条语句当前必须按照一定顺序执行，一条接着一条。幸好这里我们无需在意异步事件，否则代码很快就变得更加复杂！
 
-So if synchronous brain planning maps well to synchronous code statements, how well do our brains do at planning out asynchronous code?
+所以，如果同步的大脑计划映射出同步的代码语句，那我们的大脑映射异步代码水平如何？
 
-It turns out that how we express asynchrony (with callbacks) in our code doesn't map very well at all to that synchronous brain planning behavior.
+事实是，我们在代码里（借助回调）表达异步并不如同步大脑计划映射的那么好。
 
-Can you actually imagine having a line of thinking that plans out your to-do errands like this?
+你能像下面这样来计划你的待办事项吗？
 
-> "I need to go to the store, but on the way I'm sure I'll get a phone call, so 'Hi, Mom', and while she starts talking, I'll be looking up the store address on GPS, but that'll take a second to load, so I'll turn down the radio so I can hear Mom better, then I'll realize I forgot to put on a jacket and it's cold outside, but no matter, keep driving and talking to Mom, and then the seatbelt ding reminds me to buckle up, so 'Yes, Mom, I am wearing my seatbelt, I always do!'. Ah, finally the GPS got the directions, now..."
+> “我需要去超市，在路上我肯定会接到一个电话，所以‘嗨，妈妈’，在她开始讲话时，我将在GPS上查找超市的地点，但是要话费几秒来加载，所以我会调小音量，所以我可以更好的听妈妈讲话，然后我意识到现在好冷，我忘记穿夹克了，无妨，继续开车和与妈妈讲电话，然后安全带响了提醒我系上安全带，所一‘啊呀，妈妈，我在系安全带，我一直都这样！’，啊，终于GPS有了导航，现在……”
 
-As ridiculous as that sounds as a formulation for how we plan our day out and think about what to do and in what order, nonetheless it's exactly how our brains operate at a functional level. Remember, that's not multitasking, it's just fast context switching.
+上面这种我们如此计划我们的日常以及思考该做什么该按什么顺序，听起来可能很搞笑，但是这的确时我们大脑的在功能水平上的处理，记住，这不是多任务，只不过是快速的场景切换。
 
-The reason it's difficult for us as developers to write async evented code, especially when all we have is the callback to do it, is that stream of consciousness thinking/planning is unnatural for most of us.
+之所以开发者写异步事件代码很困难，尤其是只有回调这种方式，意识流的思考／计划对我们来说很反常。
 
-We think in step-by-step terms, but the tools (callbacks) available to us in code are not expressed in a step-by-step fashion once we move from synchronous to asynchronous.
+我们是按步骤思考的，但是当我们从同步进入到异步时，代码中的工具（回调）却不是按步骤来的。
 
-And **that** is why it's so hard to accurately author and reason about async JS code with callbacks: because it's not how our brain planning works.
+**这**就是为何使用回调的异步JS代码这么难创建和分析：因为这不是我们大脑做计划的套路。
 
-**Note:** The only thing worse than not knowing why some code breaks is not knowing why it worked in the first place! It's the classic "house of cards" mentality: "it works, but not sure why, so nobody touch it!" You may have heard, "Hell is other people" (Sartre), and the programmer meme twist, "Hell is other people's code." I believe truly: "Hell is not understanding my own code." And callbacks are one main culprit.
+**注意：** 只知道为何有些代码不生效并不意味着就知道了它真正的原理！这就是经典的“纸牌屋”比喻：“有效，但不知道原因，所以任何人都不要动它！”你可能也听说过“他人即地狱”（萨特），程序员修改了这句名言，“他人的代码就是地狱”。我确信这个：“不懂我自己的代码才是地狱”。回调就是主犯之一。
 
 ### Nested/Chained Callbacks
 
-Consider:
+有这样的代码：
 
 ```js
 listen( "click", function handler(evt){
@@ -134,17 +134,15 @@ listen( "click", function handler(evt){
 } );
 ```
 
-There's a good chance code like that is recognizable to you. We've got a chain of three functions nested together, each one representing a step in an asynchronous series (task, "process").
+这种代码你应该很熟悉，我们在这里嵌套了3个函数，每一个都代表着异步中的一步（任务，“进程”）。这种代码常被称为“回调地狱“，有时也叫做“噩梦金字塔”（因为嵌套缩紧出现的三角形）。
 
-This kind of code is often called "callback hell," and sometimes also referred to as the "pyramid of doom" (for its sideways-facing triangular shape due to the nested indentation).
+但是“回调地狱”和嵌套／缩进没什么关系，它有更深层次的原因，我们稍后章节会详细说明。
 
-But "callback hell" actually has almost nothing to do with the nesting/indentation. It's a far deeper problem than that. We'll see how and why as we continue through the rest of this chapter.
+首先，我们等待“点击”事件，然后等待定时器到期，然后等待Ajax响应，然后再来一次。
 
-First, we're waiting for the "click" event, then we're waiting for the timer to fire, then we're waiting for the Ajax response to come back, at which point it might do it all again.
+乍看之下，这段代码似乎把异步自然地映射到了顺序的大脑计划。
 
-At first glance, this code may seem to map its asynchrony naturally to sequential brain planning.
-
-First (*now*), we:
+首先（*现在），我们：
 
 ```js
 listen( "..", function handler(..){
@@ -152,7 +150,7 @@ listen( "..", function handler(..){
 } );
 ```
 
-Then *later*, we:
+然后（*后来*），我们：
 
 ```js
 setTimeout( function request(..){
@@ -160,7 +158,7 @@ setTimeout( function request(..){
 }, 500) ;
 ```
 
-Then still *later*, we:
+然后（*后来*），我们：
 
 ```js
 ajax( "..", function response(..){
@@ -168,7 +166,7 @@ ajax( "..", function response(..){
 } );
 ```
 
-And finally (most *later*), we:
+最终（最后一个*后来*），我们：
 
 ```js
 if ( .. ) {
@@ -177,11 +175,11 @@ if ( .. ) {
 else ..
 ```
 
-But there's several problems with reasoning about this code linearly in such a fashion.
+但是按照这种线性方式分析是有问题的：
 
-First, it's an accident of the example that our steps are on subsequent lines (1, 2, 3, and 4...). In real async JS programs, there's often a lot more noise cluttering things up, noise that we have to deftly maneuver past in our brains as we jump from one function to the next. Understanding the async flow in such callback-laden code is not impossible, but it's certainly not natural or easy, even with lots of practice.
+首先，我们的步骤按照顺序（1，2，3然后4……）是个巧合，在真实的异步JS程序里，一定有许多其它的噪声干扰存在，这些噪声我们必须熟练的在脑中演练，当我们从一个函数跳到另一个时。在充满回调的代码里理解异步工作流不是不可能，但是很不容易，即使花费了大量的练习。
 
-But also, there's something deeper wrong, which isn't evident just in that code example. Let me make up another scenario (pseudocode-ish) to illustrate it:
+而且，还有更深层的错误，在上述示例中并不明显，我们看另一个场景（伪代码）示例：
 
 ```js
 doA( function(){
@@ -196,8 +194,7 @@ doA( function(){
 
 doF();
 ```
-
-While the experienced among you will correctly identify the true order of operations here, I'm betting it is more than a little confusing at first glance, and takes some concerted mental cycles to arrive at. The operations will happen in this order:
+尽管你们中经验丰富的人能正确的指出执行顺序，但我打赌看到它的第一眼你一定很困惑，并且花费了些脑力来识别出顺序，执行顺序如下：
 
 * `doA()`
 * `doF()`
@@ -206,9 +203,9 @@ While the experienced among you will correctly identify the true order of operat
 * `doE()`
 * `doD()`
 
-Did you get that right the very first time you glanced at the code?
+你看到的第一眼是否得出了正确的结论？
 
-OK, some of you are thinking I was unfair in my function naming, to intentionally lead you astray. I swear I was just naming in top-down appearance order. But let me try again:
+好的，有些读者可能会觉得我函数命名不够公平，会误导人，我发誓我只是按照代码里出现的先后顺序来命名的，但是让我们再尝试：
 
 ```js
 doA( function(){
@@ -224,7 +221,7 @@ doA( function(){
 doB();
 ```
 
-Now, I've named them alphabetically in order of actual execution. But I still bet, even with experience now in this scenario, tracing through the `A -> B -> C -> D -> E -> F` order doesn't come natural to many if any of you readers. Certainly, your eyes do an awful lot of jumping up and down the code snippet, right?
+现在，我按照它们的真实执行顺序进行了命名，我仍然打赌，即使这种场景你已经有了经验，也不见得有些读者会顺着`A -> B -> C -> D -> E -> F`这样的顺序，你的眼睛会在这段代码上频繁地上下跳动。
 
 But even if that all comes natural to you, there's still one more hazard that could wreak havoc. Can you spot what it is?
 
