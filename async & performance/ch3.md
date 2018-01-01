@@ -1,61 +1,59 @@
 # You Don't Know JS: Async & Performance
 # Chapter 3: Promises
 
-In Chapter 2, we identified two major categories of deficiencies with using callbacks to express program asynchrony and manage concurrency: lack of sequentiality and lack of trustability. Now that we understand the problems more intimately, it's time we turn our attention to patterns that can address them.
+在第二章，我们认识了两个使用回调来处理异步编程和并发的主要缺陷：不够线性以及缺少信任。现在我们已经很好的理解了那些问题，现在是着手解决它们的时候了。
 
-The issue we want to address first is the *inversion of control*, the trust that is so fragilely held and so easily lost.
+第一个我们想要解决的问题时*控制反转*，信任太脆弱以及很容易丢失。
 
-Recall that we wrap up the *continuation* of our program in a callback function, and hand that callback over to another party (potentially even external code) and just cross our fingers that it will do the right thing with the invocation of the callback.
+回顾一下，我们将程序的*继续*（运行）放在回调函数里，然后把回调转交给另一部分（也许是外部代码），然后十指交叉，静静地等着它会如期正确地触发回调。
 
-We do this because we want to say, "here's what happens *later*, after the current step finishes."
+我们这么做是因为“这是*后来*要发生的，在当前步骤完成后”。
 
-But what if we could uninvert that *inversion of control*? What if instead of handing the continuation of our program to another party, we could expect it to return us a capability to know when its task finishes, and then our code could decide what to do next?
+但是如果我们可以颠倒这种*控制反转*呢？如果我们不是移交我们程序的继续运行给其它部分，而是可以其它部分可以提供一种能力让我们知道它们的任务已经完成，然后我们自己的代码决定我们接下来做什么？
 
-This paradigm is called **Promises**.
+这种范例就是**Promises**。
 
-Promises are starting to take the JS world by storm, as developers and specification writers alike desperately seek to untangle the insanity of callback hell in their code/design. In fact, most new async APIs being added to JS/DOM platform are being built on Promises. So it's probably a good idea to dig in and learn them, don't you think!?
+，随着开发者以及规范编写者迫切地寻找解决他们代码／设计中的回调问题的方案，Promises已经开始迅速的席卷JS世界。事实上，大多数新的被添加到JS／DOM平台的异步API都是基于Promises的。所以，很有必要深挖一下他们，不是吗？
 
-**Note:** The word "immediately" will be used frequently in this chapter, generally to refer to some Promise resolution action. However, in essentially all cases, "immediately" means in terms of the Job queue behavior (see Chapter 1), not in the strictly synchronous *now* sense.
+**注意：** “立即”这个单词将会频繁的出现在本章，通常适用于一些Promise解决方案的行为。然而，本质上所有的情况里，“立即“是作业队列行为里的概念，而不是严格的同步的*当前*场景。
 
 ## What Is a Promise?
 
-When developers decide to learn a new technology or pattern, usually their first step is "Show me the code!" It's quite natural for us to just jump in feet first and learn as we go.
+当开发者决定学习某种技术或模式时，通常第一步都是"Show me the code!"，我们首先就不假思索开始学习也是很自然的一件事。
 
-But it turns out that some abstractions get lost on the APIs alone. Promises are one of those tools where it can be painfully obvious from how someone uses it whether they understand what it's for and about versus just learning and using the API.
+但结果是API中的一些抽象东西丢失了。Promises就是其中的一个工具，很明显地，一些人使用它却没有理解它是什么和为了什么，而只是学习然后使用这个API。
 
-So before I show the Promise code, I want to fully explain what a Promise really is conceptually. I hope this will then guide you better as you explore integrating Promise theory into your own async flow.
+所以在我展示Promise代码前，我想全面的解释一下Promise的概念。我希望这能在你将Promise引入到你的异步流里时更好的指导你。
 
-With that in mind, let's look at two different analogies for what a Promise *is*.
+因此，我们先看看两个不同的关于Promise*是*什么的类比。
 
 ### Future Value
 
-Imagine this scenario: I walk up to the counter at a fast-food restaurant, and place an order for a cheeseburger. I hand the cashier $1.47. By placing my order and paying for it, I've made a request for a *value* back (the cheeseburger). I've started a transaction.
+想象这种场景：我走向一个快餐店的点餐台，点了一份牛肉饼，我给了收银员$1.47，通过下单以及支付，我相当于请求一个*值*（牛肉饼），我开始了一场交易。
 
-But often, the cheeseburger is not immediately available for me. The cashier hands me something in place of my cheeseburger: a receipt with an order number on it. This order number is an IOU ("I owe you") *promise* that ensures that eventually, I should receive my cheeseburger.
+但是经常，牛肉饼不会立即给你，收银员会给我一个有订单号的收据，订单号就是一个IOU（“我欠你”）*promise*，它可以确保最终我会拿到我的牛肉饼。
 
-So I hold onto my receipt and order number. I know it represents my *future cheeseburger*, so I don't need to worry about it anymore -- aside from being hungry!
+所以我紧紧握住我的收据和订单号，我知道它代表着我*未来的牛肉饼*，所以我无需担心任何东西——除了饥饿！
 
-While I wait, I can do other things, like send a text message to a friend that says, "Hey, can you come join me for lunch? I'm going to eat a cheeseburger."
+我等待期间，我可以做其他事情，比如给朋友发发短信”嗨，你要来和我一起吃午饭吗？我要吃牛肉饼。“
 
-I am reasoning about my *future cheeseburger* already, even though I don't have it in my hands yet. My brain is able to do this because it's treating the order number as a placeholder for the cheeseburger. The placeholder essentially makes the value *time independent*. It's a **future value**.
+我已经在想象我的*未来牛肉饼*了，尽管我现在还没有拿到它。我的大脑之所以这样，因为它把订单号当作牛肉饼的占位。这个占位让值成了*时间独立*，这就是**future value**。
 
-Eventually, I hear, "Order 113!" and I gleefully walk back up to the counter with receipt in hand. I hand my receipt to the cashier, and I take my cheeseburger in return.
+然后，我听到了“订单113号！”我手握收据开心地来到点餐台，我把收据交给收银台，然后拿回了我的牛肉饼。
 
-In other words, once my *future value* was ready, I exchanged my value-promise for the value itself.
+换句话说，一旦我的*future value*准备就绪，我用我的value-promise来换取真实的value。
 
-But there's another possible outcome. They call my order number, but when I go to retrieve my cheeseburger, the cashier regretfully informs me, "I'm sorry, but we appear to be all out of cheeseburgers." Setting aside the customer frustration of this scenario for a moment, we can see an important characteristic of *future values*: they can either indicate a success or failure.
+但是也会发生别的结果，他们叫了我的订单号，但是但我准备取我的牛肉饼时，收银员遗憾的告诉我“很抱歉，牛肉饼卖完了。”先抛开此场景下顾客的沮丧，我们可以看到*future value*的一个重要特点：它们可能是成功的结果也可能是失败的。
 
-Every time I order a cheeseburger, I know that I'll either get a cheeseburger eventually, or I'll get the sad news of the cheeseburger shortage, and I'll have to figure out something else to eat for lunch.
+每一次我点了一个牛肉饼，我都知道我可能最终会拿到一个牛肉饼，也可能会得到一个牛肉饼告罄的坏消息，而我必须去找别的东西来当午餐。
 
-**Note:** In code, things are not quite as simple, because metaphorically the order number may never be called, in which case we're left indefinitely in an unresolved state. We'll come back to dealing with that case later.
+**注意：** 在代码中，事情并不这么简单，比如订单号永远也没有被叫到，这样地话，我们就一直处于未解决的状态，我们稍后来看这一点。
 
 #### Values Now and Later
 
-This all might sound too mentally abstract to apply to your code. So let's be more concrete.
+所有这些可能听起来太过抽象而无法付诸代码，我们再具体一些。但是，在我们照这样引入Promises的工作原理之前，我们先从我们可以理解的代码（回调）出发来处理这些*future values*。
 
-However, before we can introduce how Promises work in this fashion, we're going to derive in code that we already understand -- callbacks! -- how to handle these *future values*.
-
-When you write code to reason about a value, such as performing math on a `number`, whether you realize it or not, you've been assuming something very fundamental about that value, which is that it's a concrete *now* value already:
+当你写下解析值的代码时，比如用`number`做算数，不管你有意还是无意，关于这个值你都已经做了基本的假定，即这个值是*当前*的：
 
 ```js
 var x, y = 2;
@@ -63,17 +61,17 @@ var x, y = 2;
 console.log( x + y ); // NaN  <-- because `x` isn't set yet
 ```
 
-The `x + y` operation assumes both `x` and `y` are already set. In terms we'll expound on shortly, we assume the `x` and `y` values are already *resolved*.
+`x + y`操作的前提是`x`和`y`已经有了值，用我们很快会解释的术语来讲，就是我们假定`x`和`y`的值已经是*resolved*（译者注：确定的也还行，但是后面依然保持英文）。
 
-It would be nonsense to expect that the `+` operator by itself would somehow be magically capable of detecting and waiting around until both `x` and `y` are resolved (aka ready), only then to do the operation. That would cause chaos in the program if different statements finished *now* and others finished *later*, right?
+期待`+`会自己检测或者等待`x`和`y`都有值然后去操作它们，这不太可能。如果不同的语句有的在*当前*结束，有的在*后来*结束，那样的话可能会导致程序的混乱，是吧？
 
-How could you possibly reason about the relationships between two statements if either one (or both) of them might not be finished yet? If statement 2 relies on statement 1 being finished, there are just two outcomes: either statement 1 finished right *now* and everything proceeds fine, or statement 1 didn't finish yet, and thus statement 2 is going to fail.
+如果两个语句中有一个（或者全部）可能还没有完成，你怎么可能推导它们之间的关系呢？如果语句2依赖于语句1的完成，只会有两种结果：要么语句1在*当前*完成，一切都进行的很顺利，要么语句1还没有完成，这样语句2将会失败。
 
-If this sort of thing sounds familiar from Chapter 1, good!
+如果这些东西听起来像是在第1章有看到过，那很好！
 
-Let's go back to our `x + y` math operation. Imagine if there was a way to say, "Add `x` and `y`, but if either of them isn't ready yet, just wait until they are. Add them as soon as you can."
+让我们回到`x + y`数学运算，想象有这么一种方式“`x`加上`y`，但是如果两者都没有准备好，那么一直等待，一有值就立即相加“。
 
-Your brain might have just jumped to callbacks. OK, so...
+你刚刚可能想到了回调，好吧，所以……
 
 ```js
 function add(getX,getY,cb) {
@@ -101,21 +99,22 @@ add( fetchX, fetchY, function(sum){
 } );
 ```
 
+用一点儿事件消化一些这美妙的代码片段。
 Take just a moment to let the beauty (or lack thereof) of that snippet sink in (whistles patiently).
 
-While the ugliness is undeniable, there's something very important to notice about this async pattern.
+尽管不可否认的丑陋，这种异步模式还是有很重要的需要注意的东西。
 
-In that snippet, we treated `x` and `y` as future values, and we express an operation `add(..)` that (from the outside) does not care whether `x` or `y` or both are available right away or not. In other words, it normalizes the *now* and *later*, such that we can rely on a predictable outcome of the `add(..)` operation.
+在上述代码中，我们把`x`和`y`当作future values，我们表达`add(..)`操作并不关心`x`和`y`是否当前有值，换句话说，它使得*当前*和*后来*没有了差别，这样我们可以依赖在一个可以预测结果的`add(..)`操作上。
 
-By using an `add(..)` that is temporally consistent -- it behaves the same across *now* and *later* times -- the async code is much easier to reason about.
+通过使用这种暂时一致的`add(..)`——它在*当前*和*后来*都是一样的——异步代码推导起来更加容易。
 
-To put it more plainly: to consistently handle both *now* and *later*, we make both of them *later*: all operations become async.
+说得更平白些：为了统一处理*当前*和*后来*，我们让它们都成为*后来*：所有的操作成了异步的。
 
-Of course, this rough callbacks-based approach leaves much to be desired. It's just a first tiny step toward realizing the benefits of reasoning about *future values* without worrying about the time aspect of when it's available or not.
+当然，这种粗糙的基于回调的方法还有很多待改进的地方，它只是实现推导*future values*而无需关注何时有值这个大目标的第一小步。
 
 #### Promise Value
 
-We'll definitely go into a lot more detail about Promises later in the chapter -- so don't worry if some of this is confusing -- but let's just briefly glimpse at how we can express the `x + y` example via `Promise`s:
+我们在本章后续会继续深入Promises的更多细节——所以如果上述有些地方你有困惑，不要担心——但首先让我们看一下我们如果用`Promise`来实现`x + y`这个例子：
 
 ```js
 function add(xPromise,yPromise) {
@@ -147,17 +146,17 @@ add( fetchX(), fetchY() )
 } );
 ```
 
-There are two layers of Promises in this snippet.
+这段代码里有两层Promise。
 
-`fetchX()` and `fetchY()` are called directly, and the values they return (promises!) are passed into `add(..)`. The underlying values those promises represent may be ready *now* or *later*, but each promise normalizes the behavior to be the same regardless. We reason about `X` and `Y` values in a time-independent way. They are *future values*.
+`fetchX()`和`fetchY()`被直接调用，它们返回的值（promises！）被传递给`add(..)`，这些promises的最终的值可能*当前*或者*后来*才可访问，但是不管怎样每一个promise将它们的行为标准化为相同的。我们独立于时间而推导`X`和`Y`的值，它们是*future values*。
 
-The second layer is the promise that `add(..)` creates (via `Promise.all([ .. ])`) and returns, which we wait on by calling `then(..)`. When the `add(..)` operation completes, our `sum` *future value* is ready and we can print it out. We hide inside of `add(..)` the logic for waiting on the `X` and `Y` *future values*.
+第二层是`add(..)`（通过`Promise.all([..])`）创建和返回的promise，我们通过调用`then(..)`来等待。当`add(..)`操作完成时，我们的`sum`*future value*也准备好，然后我们可以打印它。我们在`add(..)`里隐藏了等待`X`和`Y`的*future values*。
 
-**Note:** Inside `add(..)`, the `Promise.all([ .. ])` call creates a promise (which is waiting on `promiseX` and `promiseY` to resolve). The chained call to `.then(..)` creates another promise, which the `return values[0] + values[1]` line immediately resolves (with the result of the addition). Thus, the `then(..)` call we chain off the end of the `add(..)` call -- at the end of the snippet -- is actually operating on that second promise returned, rather than the first one created by `Promise.all([ .. ])`. Also, though we are not chaining off the end of that second `then(..)`, it too has created another promise, had we chosen to observe/use it. This Promise chaining stuff will be explained in much greater detail later in this chapter.
+**注意：** 在`add(..)`里，调用`Promise.all([ .. ])`创建了一个promise（它等待`promiseX`和`promiseY`解析），调用`.then(..)`产生了另一个promise，`return values[0] + values[1]`这一行立即解析（加法的结果）。这样我们放在调用链最后的`then(..)`的调用——代码的最后面——实际上是在第二个promise的返回结果上操作的，而不是在由`Promise.all([..])`创建的第一个。而且，尽管我们没有在第二个我们选择观察／使用的`then(..)`的后面用链式来写，它其实也创建了另一个promise。这种Promise链的内容会在本章的后面详细解释。
 
-Just like with cheeseburger orders, it's possible that the resolution of a Promise is rejection instead of fulfillment. Unlike a fulfilled Promise, where the value is always programmatic, a rejection value -- commonly called a "rejection reason" -- can either be set directly by the program logic, or it can result implicitly from a runtime exception.
+正如牛肉饼订单，很可能Promise的结果会是失败而不是成功。与成功的Promise不同，它的值总是可以编程安全的，一个失败的值——一般被叫做“rejection reason”——既可以被直接用代码逻辑设置，也可以是一个隐式的运行时异常。
 
-With Promises, the `then(..)` call can actually take two functions, the first for fulfillment (as shown earlier), and the second for rejection:
+Promises的`then(..)`可以接受两个函数，第一个处理成功情况（如前面所述），第二个处理失败情况：
 
 ```js
 add( fetchX(), fetchY() )
