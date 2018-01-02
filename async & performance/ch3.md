@@ -172,33 +172,33 @@ add( fetchX(), fetchY() )
 );
 ```
 
-If something went wrong getting `X` or `Y`, or something somehow failed during the addition, the promise that `add(..)` returns is rejected, and the second callback error handler passed to `then(..)` will receive the rejection value from the promise.
+如果获取`X`或`Y`时出了错，或者在加法时出了错，那么`add(..)`这个promise会返回失败，传给`then(..)`的第二个回调错误处理函数会收到promise的拒绝值。
 
-Because Promises encapsulate the time-dependent state -- waiting on the fulfillment or rejection of the underlying value -- from the outside, the Promise itself is time-independent, and thus Promises can be composed (combined) in predictable ways regardless of the timing or outcome underneath.
+因为Promises在最外面封装了时间独立状态——等待最终值的完成或者拒绝，所以Promise本身也是时间独立的，这样Promises就可以以无视时间或者最终结果的方式被组合。
 
-Moreover, once a Promise is resolved, it stays that way forever -- it becomes an *immutable value* at that point -- and can then be *observed* as many times as necessary.
+而且，一旦Promise被解析，它将永远这样——成为*不可变的值*——然后可以被有需要时任意次访问（*观测*）。
 
-**Note:** Because a Promise is externally immutable once resolved, it's now safe to pass that value around to any party and know that it cannot be modified accidentally or maliciously. This is especially true in relation to multiple parties observing the resolution of a Promise. It is not possible for one party to affect another party's ability to observe Promise resolution. Immutability may sound like an academic topic, but it's actually one of the most fundamental and important aspects of Promise design, and shouldn't be casually passed over.
+**注意：** 因为Promise被解析后，就不再改变，现在把它传递给任何部分都是安全的，而且我们知道它也不会被无意或刻意修改。当涉及多个部分都尝试访问（观测）同一个Promise的解析时也是如此。某一个部分不可能会影响其它部分观测Promise解析的能力，不可修改可能听起来像学术话题，但它的确是Promise设计的最基础最重要的方面之一，不应该被随意忽视。
 
-That's one of the most powerful and important concepts to understand about Promises. With a fair amount of work, you could ad hoc create the same effects with nothing but ugly callback composition, but that's not really an effective strategy, especially because you have to do it over and over again.
+上面就是理解Promise的最强大和重要的概念之一。经过一定的努力，你可以仅仅使用丑陋的回调组合达到同样的效果，但是这是很低效的策略，尤其是你不得不一遍又一遍的做。
 
-Promises are an easily repeatable mechanism for encapsulating and composing *future values*.
+Promises是一个简单地可重复的封装和组合*future values*的机制。
 
 ### Completion Event
 
-As we just saw, an individual Promise behaves as a *future value*. But there's another way to think of the resolution of a Promise: as a flow-control mechanism -- a temporal this-then-that -- for two or more steps in an asynchronous task.
+如前所见，一个Promise就相当于一个*future value*。但是还有一种思路来思考Promise的解析：作为一个流控的机制——一个暂时的这样-然后-那样——两个或更多步骤的异步任务。
 
-Let's imagine calling a function `foo(..)` to perform some task. We don't know about any of its details, nor do we care. It may complete the task right away, or it may take a while.
+假设调用一个函数`foo(..)`来完成一些任务，我们不知道任何更详细的东西，我们也不关心。可能时当前立刻就完成任务，也可能需要花费一定时间。
 
-We just simply need to know when `foo(..)` finishes so that we can move on to our next task. In other words, we'd like a way to be notified of `foo(..)`'s completion so that we can *continue*.
+我们仅仅需要知道何时`foo(..)`完成即可，这样我们可以继续下一个任务。也就是说，如果有一种方式能告知我们`foo(..)`完成了，这样我们就可以*继续*，那将会很赞。
 
-In typical JavaScript fashion, if you need to listen for a notification, you'd likely think of that in terms of events. So we could reframe our need for notification as a need to listen for a *completion* (or *continuation*) event emitted by `foo(..)`.
+按照JS的典型方式，如果你需要监听一个通知，那么你希望它是一个事件。所以我们可以再塑通知的需求为一个监听`foo(..)`触发的*完成*（或者*继续*）的需求。
 
-**Note:** Whether you call it a "completion event" or a "continuation event" depends on your perspective. Is the focus more on what happens with `foo(..)`, or what happens *after* `foo(..)` finishes? Both perspectives are accurate and useful. The event notification tells us that `foo(..)` has *completed*, but also that it's OK to *continue* with the next step. Indeed, the callback you pass to be called for the event notification is itself what we've previously called a *continuation*. Because *completion event* is a bit more focused on the `foo(..)`, which more has our attention at present, we slightly favor *completion event* for the rest of this text.
+**注意：** 无论你习惯把它叫做“完成事件”还是“继续事件”，重点是`foo(..)`发生了什么，还是`foo(..)`完成*后*会发生生么？两个观点都没错有意义。事件通知告诉我们`foo(..)`已经*完成了*，同时也意味着可以*继续*进行下一个任务了。事实上，你传递的为事件通知被调用回调本身也是*继续*。因为*完成事件*更强调`foo(..)`本身，也被我们更多的关注，所以我们接下来会倾向于使用*完成事件*这种叫法。
 
-With callbacks, the "notification" would be our callback invoked by the task (`foo(..)`). But with Promises, we turn the relationship around, and expect that we can listen for an event from `foo(..)`, and when notified, proceed accordingly.
+使用回调，“通知”就是由任务（`foo(..)`）触发的回调函数。但是使用Promises，我们反过来，希望自己来监听来自`foo(..)`的事件，当由通知时，就直接去处理。
 
-First, consider some pseudocode:
+首先，看几个伪代码：
 
 ```js
 foo(x) {
@@ -216,9 +216,9 @@ on (foo "error") {
 }
 ```
 
-We call `foo(..)` and then we set up two event listeners, one for `"completion"` and one for `"error"` -- the two possible *final* outcomes of the `foo(..)` call. In essence, `foo(..)` doesn't even appear to be aware that the calling code has subscribed to these events, which makes for a very nice *separation of concerns*.
+我们调用`foo(..)`然后创建2个事件监听器，一个给`"completion"`，一个给`"error"`——两个调用`foo(..)`*最终*可能的结果。本质上，`foo(..)`也不会意识到调用代码被这两个事件监听，这样就是一个很好的*关注分离*。
 
-Unfortunately, such code would require some "magic" of the JS environment that doesn't exist (and would likely be a bit impractical). Here's the more natural way we could express that in JS:
+但是，这种代码需要一些JS环境里没有的“魔法”（而且很可能不太现实），下面是我们在JS里可以更自然地表述方式：
 
 ```js
 function foo(x) {
@@ -241,13 +241,12 @@ evt.on( "failure", function(err){
 } );
 ```
 
-`foo(..)` expressly creates an event subscription capability to return back, and the calling code receives and registers the two event handlers against it.
+`foo(..)`明显创建了一个可以返回的事件订阅能力，调用代码对它接收和注册两个事件处理器。
+从一般的基于回调的反转代码会很清晰，目的也很明确。不再传递回调给`foo(..)`，而是后者返回一个我们叫做`evt`事件功能，它可以接收回调。
 
-The inversion from normal callback-oriented code should be obvious, and it's intentional. Instead of passing the callbacks to `foo(..)`, it returns an event capability we call `evt`, which receives the callbacks.
+如果你回顾第2章，回调本身代表的是*控制反转*。所以，反转回调模式就是*反转的反转*，或者*控制反反转*——我们最初也是想要把控制权回交给调用的代码。
 
-But if you recall from Chapter 2, callbacks themselves represent an *inversion of control*. So inverting the callback pattern is actually an *inversion of inversion*, or an *uninversion of control* -- restoring control back to the calling code where we wanted it to be in the first place.
-
-One important benefit is that multiple separate parts of the code can be given the event listening capability, and they can all independently be notified of when `foo(..)` completes to perform subsequent steps after its completion:
+另一个重要的观点是，代码中不同的独立部分可以被给予事件监听功能，当`foo(..)`完成时它们可以独立的被通知从而完成接下来的步骤：
 
 ```js
 var evt = foo( 42 );
@@ -259,17 +258,17 @@ bar( evt );
 baz( evt );
 ```
 
-*Uninversion of control* enables a nicer *separation of concerns*, where `bar(..)` and `baz(..)` don't need to be involved in how `foo(..)` is called. Similarly, `foo(..)` doesn't need to know or care that `bar(..)` and `baz(..)` exist or are waiting to be notified when `foo(..)` completes.
+*控制反反转*让*关注分离*更加优雅，`baz(..)`和`bar(..)`无需关注`foo(..)`是如何被调用的，同样的，`foo(..)`无需关注`bar(..)`和`baz(..)`的存在，或是否在等待`foo(..)`完成后通知它们。
 
-Essentially, this `evt` object is a neutral third-party negotiation between the separate concerns.
+本质上，这个`evt`对象是一个不同关注之间的中立的三方协商。
 
 #### Promise "Events"
 
-As you may have guessed by now, the `evt` event listening capability is an analogy for a Promise.
+可能你已经猜到，`evt`事件监听功能就是Promise的类比。
 
-In a Promise-based approach, the previous snippet would have `foo(..)` creating and returning a `Promise` instance, and that promise would then be passed to `bar(..)` and `baz(..)`.
+在基于Promise的方法里，前述代码片段`foo(..)`会创建和返回一个`Promise`实例，这个promise会传给`bar(..)`和`baz(..)`。
 
-**Note:** The Promise resolution "events" we listen for aren't strictly events (though they certainly behave like events for these purposes), and they're not typically called `"completion"` or `"error"`. Instead, we use `then(..)` to register a `"then"` event. Or perhaps more precisely, `then(..)` registers `"fulfillment"` and/or `"rejection"` event(s), though we don't see those terms used explicitly in the code.
+**注意：** 我们监听的Promise的解析“事件”并不严格是事件（尽管从目的看来它们的行为是事件），但是它们被代表性的称为`"completion"`或`"error"`。相反，我们使用`then(..)`来注册`"then"`事件，或者更精确的说，`then(..)`注册了`"fulfillment"`或`"rejection"`事件，尽管我们在代码里没有明确的看到这些术语。
 
 Consider:
 
@@ -292,9 +291,9 @@ bar( p );
 baz( p );
 ```
 
-**Note:** The pattern shown with `new Promise( function(..){ .. } )` is generally called the ["revealing constructor"](http://domenic.me/2014/02/13/the-revealing-constructor-pattern/). The function passed in is executed immediately (not async deferred, as callbacks to `then(..)` are), and it's provided two parameters, which in this case we've named `resolve` and `reject`. These are the resolution functions for the promise. `resolve(..)` generally signals fulfillment, and `reject(..)` signals rejection.
+**注意：** 那个`new Promise( function(..){ .. } )`的模式一般叫做["revealing constructor"](http://domenic.me/2014/02/13/the-revealing-constructor-pattern/)（“实现构造器”？）。传入的两个函数会立即被执行（不同于`then(..)`的回调里的异步延迟），它需要两个参数，在这种情况下，我们起名为`resolve`和`reject`，它们是promise的解析函数，`resolve(..)`通常代表实行（成功），`reject(..)`代表拒绝（失败）。
 
-You can probably guess what the internals of `bar(..)` and `baz(..)` might look like:
+你可以猜到`bar(..)`和`baz(..)`的内部可能会是这样子：
 
 ```js
 function bar(fooPromise) {
@@ -313,9 +312,9 @@ function bar(fooPromise) {
 // ditto for `baz(..)`
 ```
 
-Promise resolution doesn't necessarily need to involve sending along a message, as it did when we were examining Promises as *future values*. It can just be a flow-control signal, as used in the previous snippet.
+Promise解析不必总是关于发送消息，虽然它在我们把Promises作为*future values*检验时的确是这样子，但它可以完全被当作流控的信号，如前面的代码片段里。
 
-Another way to approach this is:
+另一种使用方式如下：
 
 ```js
 function bar() {
@@ -337,21 +336,21 @@ p.then( bar, oopsBar );
 p.then( baz, oopsBaz );
 ```
 
-**Note:** If you've seen Promise-based coding before, you might be tempted to believe that the last two lines of that code could be written as `p.then( .. ).then( .. )`, using chaining, rather than `p.then(..); p.then(..)`. That would have an entirely different behavior, so be careful! The difference might not be clear right now, but it's actually a different async pattern than we've seen thus far: splitting/forking. Don't worry! We'll come back to this point later in this chapter.
+**注意：** 如果你以前看到过基于Promise的编程，你会误以为上面代码的最后两行可以被写成`p.then( .. ).then( .. )`，使用链式，而不是`p.then(..); p.then(..)`。那样会有完全不同的处理，小心哦！区别可能还不清晰，但确实是我们还没有见到的不同的异步模式：splitting/forking。别怕！我们后面会讲到它。
 
-Instead of passing the `p` promise to `bar(..)` and `baz(..)`, we use the promise to control when `bar(..)` and `baz(..)` will get executed, if ever. The primary difference is in the error handling.
+不是把promise`p`传给`bar(..)`和`baz(..)`，我们使用这个promise来控制何时`bar(..)`和`baz(..)`被执行（如果可以的话），最大的区别就是错误处理。
 
-In the first snippet's approach, `bar(..)` is called regardless of whether `foo(..)` succeeds or fails, and it handles its own fallback logic if it's notified that `foo(..)` failed. The same is true for `baz(..)`, obviously.
+第一段代码里的方法`bar(..)`无论`foo(..)`成功或失败都会被调用，它会自己处理失败逻辑如果被通知`foo(..)`失败了，`baz(..)`也是。
 
-In the second snippet, `bar(..)` only gets called if `foo(..)` succeeds, and otherwise `oopsBar(..)` gets called. Ditto for `baz(..)`.
+第二段代码片段里`bar(..)`只有当`foo(..)`成功时才会被调用，否则`oopsBar(..)`会被调用。`baz(..)`一样。
 
-Neither approach is *correct* per se. There will be cases where one is preferred over the other.
+本身没有哪个*正确*之分，只有不同情况下谁更适用。
 
-In either case, the promise `p` that comes back from `foo(..)` is used to control what happens next.
+无论那种，从`foo(..)`返回的promise`p`都会被用来控制接下来发生什么。
 
-Moreover, the fact that both snippets end up calling `then(..)` twice against the same promise `p` illustrates the point made earlier, which is that Promises (once resolved) retain their same resolution (fulfillment or rejection) forever, and can subsequently be observed as many times as necessary.
+此外，两段代码里都用`then(..)`调用了promsie`p`两次，进一步我们之前的观点，Promises（一旦以及解析）会一直保持该解析，可以被按需要访问（观测）任意次。
 
-Whenever `p` is resolved, the next step will always be the same, both *now* and *later*.
+无论何时`p`被解析，接下来的步骤都会是一样的，*当前*和*后来*。
 
 ## Thenable Duck Typing
 
