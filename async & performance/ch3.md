@@ -354,17 +354,17 @@ p.then( baz, oopsBaz );
 
 ## Thenable Duck Typing
 
-In Promises-land, an important detail is how to know for sure if some value is a genuine Promise or not. Or more directly, is it a value that will behave like a Promise?
+在Promises领域，一个很重要细节就是如何确定某个值就是Promise，或者说，某个值是否具备Promise行为？
 
-Given that Promises are constructed by the `new Promise(..)` syntax, you might think that `p instanceof Promise` would be an acceptable check. But unfortunately, there are a number of reasons that's not totally sufficient.
+考虑到Promises是由`new Promise(..)`语法构造的，你可能认为`p instanceof Promise`可以用来检查，但是很不幸，有诸多原因导致它并不充分。
 
-Mainly, you can receive a Promise value from another browser window (iframe, etc.), which would have its own Promise different from the one in the current window/frame, and that check would fail to identify the Promise instance.
+首先，你可能会从其它浏览器窗口（比如iframe等）接收到一个Promise值，它与当前窗口或帧自己的Promise是不同的，那种检查无法识别出Promise实例。
 
-Moreover, a library or framework may choose to vend its own Promises and not use the native ES6 `Promise` implementation to do so. In fact, you may very well be using Promises with libraries in older browsers that have no Promise at all.
+而且，一些库或框架会有自己的Promises而不是使用ES6的自带`Promise`实现，事实上，你很可能在一些根本没有Promise的老浏览器里使用带有Promises的库。
 
-When we discuss Promise resolution processes later in this chapter, it will become more obvious why a non-genuine-but-Promise-like value would still be very important to be able to recognize and assimilate. But for now, just take my word for it that it's a critical piece of the puzzle.
+当我们在后续章节讨论Promise解析处理时，你会更明显感觉到为何一个本质上不是但是类似Promise的值可以被识别和类比很重要。但是现在，仅仅记住我的话就行，因为这是解密的很重要一点。
 
-As such, it was decided that the way to recognize a Promise (or something that behaves like a Promise) would be to define something called a "thenable" as any object or function which has a `then(..)` method on it. It is assumed that any such value is a Promise-conforming thenable.
+因此，经决定，如何识别一个Promise（或者行为像Promise的东西）就是定义一些有`then(..)`方法的任何对象或函数被称为"thenable"的东西。任何这种值都是一个遵守Promise的thenable。
 
 The general term for "type checks" that make assumptions about a value's "type" based on its shape (what properties are present) is called "duck typing" -- "If it looks like a duck, and quacks like a duck, it must be a duck" (see the *Types & Grammar* title of this book series). So the duck typing check for a thenable would roughly be:
 
