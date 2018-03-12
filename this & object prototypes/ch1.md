@@ -1,19 +1,19 @@
 # You Don't Know JS: *this* & Object Prototypes
 # Chapter 1: `this` Or That?
 
-One of the most confused mechanisms in JavaScript is the `this` keyword. It's a special identifier keyword that's automatically defined in the scope of every function, but what exactly it refers to bedevils even seasoned JavaScript developers.
+`this`是JS中一个最容易让人困惑的关键词，它是一个在每一个函数作用域内自动定义的关键标识符，但它真正的引用有时即使老司机也会翻车。
 
-> Any sufficiently *advanced* technology is indistinguishable from magic. -- Arthur C. Clarke
 
-JavaScript's `this` mechanism isn't actually *that* advanced, but developers often paraphrase that quote in their own mind by inserting "complex" or "confusing", and there's no question that without lack of clear understanding, `this` can seem downright magical in *your* confusion.
+> 任何足够*高级*的技术都与魔法无异。—— C. Clarke
 
-**Note:** The word "this" is a terribly common pronoun in general discourse. So, it can be very difficult, especially verbally, to determine whether we are using "this" as a pronoun or using it to refer to the actual keyword identifier. For clarity, I will always use `this` to refer to the special keyword, and "this" or *this* or this otherwise.
+JS的`this`事实上并没有*那么*高级，但开发者经常引用这句话，其实不过是他们自己过分强调了“复杂”和“困惑”，当然如果没有清楚理解，`this`就会在你的困惑中魔幻起来。
 
 ## Why `this`?
 
-If the `this` mechanism is so confusing, even to seasoned JavaScript developers, one may wonder why it's even useful? Is it more trouble than it's worth? Before we jump into the *how*, we should examine the *why*.
+既然`this`这么坑爹，连老司机都翻车，那么为什么我们还是要用它？所以我们在讲解*how*前，先来讨论下*why*。
 
 Let's try to illustrate the motivation and utility of `this`:
+我们试着表示一下`this`的动机和作用：
 
 ```js
 function identify() {
@@ -40,11 +40,9 @@ speak.call( me ); // Hello, I'm KYLE
 speak.call( you ); // Hello, I'm READER
 ```
 
-If the *how* of this snippet confuses you, don't worry! We'll get to that shortly. Just set those questions aside briefly so we can look into the *why* more clearly.
+如果你理解不了上面代码里的*how*，无妨，我们现在说的是*why*，请继续往下看：
 
-This code snippet allows the `identify()` and `speak()` functions to be re-used against multiple *context* (`me` and `you`) objects, rather than needing a separate version of the function for each object.
-
-Instead of relying on `this`, you could have explicitly passed in a context object to both `identify()` and `speak()`.
+这段代码允许在不同的 *上下文*（`me`和`you`对象）重复使用函数`identify()`和`speak()`，而不是对每个对象都需要独立的函数。当然，你可以不使用`this`，而是直接把特定的上下文对象传给两个函数：
 
 ```js
 function identify(context) {
@@ -59,28 +57,28 @@ function speak(context) {
 identify( you ); // READER
 speak( me ); // Hello, I'm KYLE
 ```
+然后，`this`机制却提供了一种隐式“传递”对象引用的优雅方式，从而让API设计更清晰和更容易重复利用。（不好意思，我没看出来怎么个优雅法……）
 
-However, the `this` mechanism provides a more elegant way of implicitly "passing along" an object reference, leading to cleaner API design and easier re-use.
-
-The more complex your usage pattern is, the more clearly you'll see that passing context around as an explicit parameter is often messier than passing around a `this` context. When we explore objects and prototypes, you will see the helpfulness of a collection of functions being able to automatically reference the proper context object.
+使用方式越复杂，你越会清楚的认识到，把上下文当作特定参数传递经常会一团糟，远不如传递`this`上下文。当我们后面探索对象和原型时，你会看到一系列可以自动引用合适上下文对象的函数的好处。
 
 ## Confusions
 
-We'll soon begin to explain how `this` *actually* works, but first we must  dispel some misconceptions about how it *doesn't* actually work.
+在我们开始学习`this`的工作原理前，我们先消除一些错误观念。
 
-The name "this" creates confusion when developers try to think about it too literally. There are two meanings often assumed, but both are incorrect.
+当开发者从字面上来理解“this”时，就会产生困惑，一般有两种错误假设：
 
 ### Itself
 
+一种就是认为`this`引用的时函数本身，从文字语法上来讲，确实是的。
 The first common temptation is to assume `this` refers to the function itself. That's a reasonable grammatical inference, at least.
 
-Why would you want to refer to a function from inside itself? The most common reasons would be things like recursion (calling a function from inside itself) or having an event handler that can unbind itself when it's first called.
+但是你在函数中为何还要多此一举的引用它自己呢？当然出了递归或者在首次调用时来解绑的事件句柄除外。
 
-Developers new to JS's mechanisms often think that referencing the function as an object (all functions in JavaScript are objects!) lets you store *state* (values in properties) between function calls. While this is certainly possible and has some limited uses, the rest of the book will expound on many other patterns for *better* places to store state besides the function object.
+新接触JS的开发者通常认为把函数作为对象来引用（JS中的所有函数都是对象！），可以保存函数之间调用时的 *状态* （属性值），尽管这是可行的并且有一些有限的用处，本书的剩余部分将会阐述许多其它*更好的*的存储状态的方式。
 
-But for just a moment, we'll explore that pattern, to illustrate how `this` doesn't let a function get a reference to itself like we might have assumed.
+稍等，我们会讲到那个模式，我们先看一下`this`无法如我们所期望的获取到函数自身引用的一个例子：
 
-Consider the following code, where we attempt to track how many times a function (`foo`) was called:
+下面的代码意图跟踪函数`foo()`被调用次数：
 
 ```js
 function foo(num) {
@@ -108,13 +106,13 @@ for (i=0; i<10; i++) {
 console.log( foo.count ); // 0 -- WTF?
 ```
 
-`foo.count` is *still* `0`, even though the four `console.log` statements clearly indicate `foo(..)` was in fact called four times. The frustration stems from a *too literal* interpretation of what `this` (in `this.count++`) means.
+尽管我们可以看到`console.log`打印了4次，表明`foo(..)`被调用了4次，但是`foo.count`*一直都* 是`0`，这个困惑源自*太文字*理解`this`（在`this.count`）的含义。
 
-When the code executes `foo.count = 0`, indeed it's adding a property `count` to the function object `foo`. But for the `this.count` reference inside of the function, `this` is not in fact pointing *at all* to that function object, and so even though the property names are the same, the root objects are different, and confusion ensues.
+当代码执行`foo.count = 0`时，它确实给`foo`增加了一个属性`count`，但是函数中的`this.count`，`this`并不*总是*指向这个函数对象，尽管属性名是一样的，本质的对象不同，所以困惑紧跟着出现。
 
-**Note:** A responsible developer *should* ask at this point, "If I was incrementing a `count` property but it wasn't the one I expected, which `count` *was* I incrementing?" In fact, were she to dig deeper, she would find that she had accidentally created a global variable `count` (see Chapter 2 for *how* that happened!), and it currently has the value `NaN`. Of course, once she identifies this peculiar outcome, she then has a whole other set of questions: "How was it global, and why did it end up `NaN` instead of some proper count value?" (see Chapter 2).
+**注意：** 一个靠谱的开发者此时*应该*有这样的问题：“如果我增加的不是我期望的`count`，那它是谁（的）？” 事实上，如果深挖下去，他会发现其实他创建了一个全局变量`count`（参考第二章了解它*如何*发生！），它当前的值为`NaN`，当他发现这一点时，他又回问“它时如何成为全局变量的，以及为何它的值是`NaN`而不是其它值？”（仍然参考第二章）
 
-Instead of stopping at this point and digging into why the `this` reference doesn't seem to be behaving as *expected*, and answering those tough but important questions, many developers simply avoid the issue altogether, and hack toward some other solution, such as creating another object to hold the `count` property:
+很多开发者到这里，一般不是去深入了解一下为何`this`并没有如期行为，然后回答这些难却重要的问题，而是会避开这些问题，采用一些hack解决方式，比如创建一个持有`count`属性的对象：
 
 ```js
 function foo(num) {
@@ -144,13 +142,11 @@ for (i=0; i<10; i++) {
 console.log( data.count ); // 4
 ```
 
-While it is true that this approach "solves" the problem, unfortunately it simply ignores the real problem -- lack of understanding what `this` means and how it works -- and instead falls back to the comfort zone of a more familiar mechanism: lexical scope.
+尽管这种方式“解决”了那个问题，可惜的是它只是忽律了真实的问题 —— 理解`this`的意思以及它工作原理，又回到了自己更熟悉的舒适区：词法作用域。
 
-**Note:** Lexical scope is a perfectly fine and useful mechanism; I am not belittling the use of it, by any means (see *"Scope & Closures"* title of this book series). But constantly *guessing* at how to use `this`, and usually being *wrong*, is not a good reason to retreat back to lexical scope and never learn *why* `this` eludes you.
+**注意：** 词法作用域是一个完全OK和有用的机制，我并不是轻视使用它（参考本系列书的 *Scope & Closure* 那本）。但是不理解`this`的使用方法，经常错误的使用，采用回退到词法作用域来解决，并且从来不主动去学习*为何*与`this`缘分这么浅并不是个好理由。
 
-To reference a function object from inside itself, `this` by itself will typically be insufficient. You generally need a reference to the function object via a lexical identifier (variable) that points at it.
-
-Consider these two functions:
+为了从内部引用函数对象本身，`this`足够胜任，通常情况下你只需要通过词法标识符（变量）就可以做到：
 
 ```js
 function foo() {
@@ -163,13 +159,11 @@ setTimeout( function(){
 }, 10 );
 ```
 
-In the first function, called a "named function", `foo` is a reference that can be used to refer to the function from inside itself.
+第一个函数，叫做“命名函数”，`foo`是一个可以从函数内部引用函数自己的引用。但第二个传递给`setTimeout(..)`的函数没有标识符（所谓的“匿名函数”），所以没有合适的方法来引用函数对象本身。
 
-But in the second example, the function callback passed to `setTimeout(..)` has no name identifier (so called an "anonymous function"), so there's no proper way to refer to the function object itself.
+**注意：** 旧时代已经弃用且不建议使用的`arguments.callee`引用在函数里*也*指向函数对象本身，这是唯一的从内部获取匿名函数对象的方法，最好的方式，其实是避免使用匿名函数，至少对于那些需要自引用的，使用命名函数。
 
-**Note:** The old-school but now deprecated and frowned-upon `arguments.callee` reference inside a function *also* points to the function object of the currently executing function. This reference is typically the only way to access an anonymous function's object from inside itself. The best approach, however, is to avoid the use of anonymous functions altogether, at least for those which require a self-reference, and instead use a named function (expression). `arguments.callee` is deprecated and should not be used.
-
-So another solution to our running example would have been to use the `foo` identifier as a function object reference in each place, and not use `this` at all, which *works*:
+所以文章开始那个例子的另一个解决方式就是使用`foo`标识符来作为函数引用，而不是使用`this`：
 
 ```js
 function foo(num) {
@@ -197,9 +191,9 @@ for (i=0; i<10; i++) {
 console.log( foo.count ); // 4
 ```
 
-However, that approach similarly side-steps *actual* understanding of `this` and relies entirely on the lexical scoping of variable `foo`.
+但是，这种方式也是回避了理解`this`，完全依赖`foo`的词法作用域。
 
-Yet another way of approaching the issue is to force `this` to actually point at the `foo` function object:
+当然，另一个解决方式就是强制让`this`指向`foo`函数对象：
 
 ```js
 function foo(num) {
@@ -231,15 +225,15 @@ for (i=0; i<10; i++) {
 console.log( foo.count ); // 4
 ```
 
-**Instead of avoiding `this`, we embrace it.** We'll explain in a little bit *how* such techniques work much more completely, so don't worry if you're still a bit confused!
+**不是回避`this`，我们拥抱它。** 我们将会解释这种方式如何工作，所以不要担心现在还看不明白！
 
 ### Its Scope
 
-The next most common misconception about the meaning of `this` is that it somehow refers to the function's scope. It's a tricky question, because in one sense there is some truth, but in the other sense, it's quite misguided.
+另一个对`this`的错误理解是，认为它是引用的函数作用域。这个问题比较刁，因为从某种程度上它是正确的，但是却很误导人。
 
-To be clear, `this` does not, in any way, refer to a function's **lexical scope**. It is true that internally, scope is kind of like an object with properties for each of the available identifiers. But the scope "object" is not accessible to JavaScript code. It's an inner part of the *Engine*'s implementation.
+严格说来，`this`不是引用函数的**词法作用域**。从内部来说，作用域相当于一个每一个可访问变量都是属性的对象，但是作用域“对象”对JS代码来说是不可接受的，这是由*引擎*的内部实现决定的。
 
-Consider code which attempts (and fails!) to cross over the boundary and use `this` to implicitly refer to a function's lexical scope:
+考虑这段尝试（会失败！）使用`this`跨越边界来隐式引用函数词法作用域的代码：
 
 ```js
 function foo() {
@@ -254,28 +248,28 @@ function bar() {
 foo(); //undefined
 ```
 
-There's more than one mistake in this snippet. While it may seem contrived, the code you see is a distillation of actual real-world code that has been exchanged in public community help forums. It's a wonderful (if not sad) illustration of just how misguided `this` assumptions can be.
+这段代码有不止一处的错误，尽管它看起来是人为的，你看到的代码是在现实世界上在公共帮助论坛上交流过的。它正好说明了`this`的假设多么有误导性。
 
-Firstly, an attempt is made to reference the `bar()` function via `this.bar()`. It is almost certainly an *accident* that it works, but we'll explain the *how* of that shortly. The most natural way to have invoked `bar()` would have been to omit the leading `this.` and just make a lexical reference to the identifier.
+首先，尝试通过`this.bar()`引用`bar()`，它能生效是一个 *意外* ，但我们会简单解释它。最直观的触发`bar()`的方式是省略`this.`，直接在词法作用域内调用它。
 
-However, the developer who writes such code is attempting to use `this` to create a bridge between the lexical scopes of `foo()` and `bar()`, so that `bar()` has access to the variable `a` in the inner scope of `foo()`. **No such bridge is possible.** You cannot use a `this` reference to look something up in a lexical scope. It is not possible.
+然而，写出这段代码的开发者尝试使用`this`来创建`foo()`和`bar()`之间的纽带，所以`bar()`可以访问`foo()`内部作用域的`a`变量。**这种纽带是不可能的。**你不能通过`this`来在超出词法作用域寻找东西，这不科学。
 
-Every time you feel yourself trying to mix lexical scope look-ups with `this`, remind yourself: *there is no bridge*.
+每一次你感觉自己在使用`this`尝试混合词法作用域做查找，提醒自己：*没有纽带*。
 
 ## What's `this`?
 
-Having set aside various incorrect assumptions, let us now turn our attention to how the `this` mechanism really works.
+通过消除错误的假设，我们现在回到`this`究竟如何工作。
 
-We said earlier that `this` is not an author-time binding but a runtime binding. It is contextual based on the conditions of the function's invocation. `this` binding has nothing to do with where a function is declared, but has instead everything to do with the manner in which the function is called.
+我们前面说过`this`不是一个创建期绑定而是运行时绑定，它是基于函数被触发的条件，`this`绑定与函数在何处声明没有关系，而是和它是以何种方式被调用的有关。
 
-When a function is invoked, an activation record, otherwise known as an execution context, is created. This record contains information about where the function was called from (the call-stack), *how* the function was invoked, what parameters were passed, etc. One of the properties of this record is the `this` reference which will be used for the duration of that function's execution.
+当一个函数被激活时，一个激活记录，或者说一个执行上下文被创建，这个记录包含函数在何处被调用（call-stack），函数*如何*被激活，传入的参数是什么等等。这个记录的属性之一就是`this`引用，它会被用于函数执行期间。
 
-In the next chapter, we will learn to find a function's **call-site** to determine how its execution will bind `this`.
+下一章，我们会学习寻找一个函数的**call-site**（调用现场？），进而弄懂它的执行是如何绑定`this`的。
 
 ## Review (TL;DR)
 
-`this` binding is a constant source of confusion for the JavaScript developer who does not take the time to learn how the mechanism actually works. Guesses, trial-and-error, and blind copy-n-paste from Stack Overflow answers is not an effective or proper way to leverage *this* important `this` mechanism.
+`this`对JS开发者来说是一个很常见的困惑源，这些开发者一般不会花时间去学习它的工作原理。猜、试错以及盲目的从Stack Overflow复制粘贴并不是一个有效且合适的方法来利用*这个*重要的`this`机制。
 
-To learn `this`, you first have to learn what `this` is *not*, despite any assumptions or misconceptions that may lead you down those paths. `this` is neither a reference to the function itself, nor is it a reference to the function's *lexical* scope.
+为了学习`this`，首先你需要知道`this`不是什么，清除所有你学习之路上的错误假设和概念，`this`不是引用函数自身，也不是引用函数的*词法*作用域。
 
-`this` is actually a binding that is made when a function is invoked, and *what* it references is determined entirely by the call-site where the function is called.
+`this`实际上是一个函数被激活后的绑定关系，它引用的是*什么*需要根据函数被调用处的调用现场来决定。
