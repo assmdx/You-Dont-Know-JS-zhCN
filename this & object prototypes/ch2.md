@@ -1,17 +1,17 @@
 # You Don't Know JS: *this* & Object Prototypes
 # Chapter 2: `this` All Makes Sense Now!
 
-In Chapter 1, we discarded various misconceptions about `this` and learned instead that `this` is a binding made for each function invocation, based entirely on its **call-site** (how the function is called).
+在第一章，我们澄清了关于`this`的几个错误概念，并了解到`this`是在函数激活时根据它**调用现场**（函数是如何被调用的）生成的一个绑定。
 
 ## Call-site
 
-To understand `this` binding, we have to understand the call-site: the location in code where a function is called (**not where it's declared**). We must inspect the call-site to answer the question: what's *this* `this` a reference to?
+为了理解`this`绑定，我们需要理解调用现场：代码里函数被调用的地方（**不是声明的地方**），我们需要审查调用现场来回答这个问题：这个`this`引用的是什么？
 
-Finding the call-site is generally: "go locate where a function is called from", but it's not always that easy, as certain coding patterns can obscure the *true* call-site.
+找到调用现场一般来讲就是“找到函数被调用的地方”，但实际中并没有这么简单，因为特定的编程模式会掩饰*真正*调用现场。
 
-What's important is to think about the **call-stack** (the stack of functions that have been called to get us to the current moment in execution). The call-site we care about is *in* the invocation *before* the currently executing function.
+**调用堆栈**（记录函数是如何一步步进行到当前执行处的栈）是需要着重考虑的，我们关注的调用现场是指当前函数执行*前*的激活步骤。
 
-Let's demonstrate call-stack and call-site:
+调用堆栈和现场如下示例：
 
 ```js
 function baz() {
@@ -40,21 +40,17 @@ function foo() {
 baz(); // <-- call-site for `baz`
 ```
 
-Take care when analyzing code to find the actual call-site (from the call-stack), because it's the only thing that matters for `this` binding.
+在分析代码来（从调用堆栈里）寻找调用现场时需要小心，它是唯一决定`this`绑定的东西。
 
-**Note:** You can visualize a call-stack in your mind by looking at the chain of function calls in order, as we did with the comments in the above snippet. But this is painstaking and error-prone. Another way of seeing the call-stack is using a debugger tool in your browser. Most modern desktop browsers have built-in developer tools, which includes a JS debugger. In the above snippet, you could have set a breakpoint in the tools for the first line of the `foo()` function, or simply inserted the `debugger;` statement on that first line. When you run the page, the debugger will pause at this location, and will show you a list of the functions that have been called to get to that line, which will be your call stack. So, if you're trying to diagnose `this` binding, use the developer tools to get the call-stack, then find the second item from the top, and that will show you the real call-site.
+**注意：** 你可以通过函数调用顺序来想象调用堆栈，但这种方式容易出错，最好是利用浏览器内置的开发者工具（打断点或者在代码里添加`debugger`），在堆栈顶部第二个位置，即调用现场。
 
 ## Nothing But Rules
 
-We turn our attention now to *how* the call-site determines where `this` will point during the execution of a function.
-
-You must inspect the call-site and determine which of 4 rules applies. We will first explain each of these 4 rules independently, and then we will illustrate their order of precedence, if multiple rules *could* apply to the call-site.
+现在我们来看看调用现场时如何决定`this`指向哪里的。你需要审视调用现场，并决定以下四个规则中的哪个适用，我们会分别讲解每一个规则，然后说明当有多个规则适用时，哪个优先适用。
 
 ### Default Binding
 
-The first rule we will examine comes from the most common case of function calls: standalone function invocation. Think of *this* `this` rule as the default catch-all rule when none of the other rules apply.
-
-Consider this code:
+这条规则就是最普通的函数独立调用，当其它规则都不适用时，默认使用此规则：
 
 ```js
 function foo() {
@@ -86,7 +82,7 @@ var a = 2;
 foo(); // TypeError: `this` is `undefined`
 ```
 
-A subtle but important detail is: even though the overall `this` binding rules are entirely based on the call-site, the global object is **only** eligible for the *default binding* if the **contents** of `foo()` are **not** running in `strict mode`; the `strict mode` state of the call-site of `foo()` is irrelevant.
+一个微小却很重要的细节：尽管`this`绑定规则整体是基于调用现场的，但全局对象只有在`foo()`的内容**不是**运行在`strict mode`下时才适用于*默认绑定*规则，`strict mode`下`foo()`的调用现场是不相关的。
 
 ```js
 function foo() {
@@ -102,13 +98,11 @@ var a = 2;
 })();
 ```
 
-**Note:** Intentionally mixing `strict mode` and non-`strict mode` together in your own code is generally frowned upon. Your entire program should probably either be **Strict** or **non-Strict**. However, sometimes you include a third-party library that has different **Strict**'ness than your own code, so care must be taken over these subtle compatibility details.
+**注意：**不赞成在代码里混用`strict mode`和非`strict mode`，但有时你使用的第三方可能是不同的**严格**模式，所以要小心这些兼容性问题。
 
-### Implicit Binding
+### Implicit Binding（隐式绑定）
 
-Another rule to consider is: does the call-site have a context object, also referred to as an owning or containing object, though *these* alternate terms could be slightly misleading.
-
-Consider:
+另一个规则是：调用现场是否有一个上下文对象，它同时也是持有其它内容的对象，*这些*额外的关系会很误导人。
 
 ```js
 function foo() {
@@ -123,15 +117,15 @@ var obj = {
 obj.foo(); // 2
 ```
 
-Firstly, notice the manner in which `foo()` is declared and then later added as a reference property onto `obj`. Regardless of whether `foo()` is initially declared *on* `obj`, or is added as a reference later (as this snippet shows), in neither case is the **function** really "owned" or "contained" by the `obj` object.
+首先注意`foo()`是如何被声明以及作为一个属性引用添加到`obj`上的，无论`foo()`是从一开始就声明在`obj`上，还是后来作为引用增加上去的，**函数**都不是真实由`obj`持有或包含的。
 
-However, the call-site *uses* the `obj` context to **reference** the function, so you *could* say that the `obj` object "owns" or "contains" the **function reference** at the time the function is called.
+然而，调用现场*使用*`obj`对象上下文来**引用**函数，所以你*可以*说`obj`对象在函数被调用时“持有“或”包含“**函数引用**。
 
-Whatever you choose to call this pattern, at the point that `foo()` is called, it's preceded by an object reference to `obj`. When there is a context object for a function reference, the *implicit binding* rule says that it's *that* object which should be used for the function call's `this` binding.
+无论如何称呼，当`foo()`被调用时，它在一个引用`obj`的对象之前。每当有上下文对象提供给函数引用时，*隐式绑定*规则宣称正是*这个*对象应该被用来作为函数调用时的`this`绑定。
 
-Because `obj` is the `this` for the `foo()` call, `this.a` is synonymous with `obj.a`.
+由于`obj`是`foo()`调用时的`this`，所以`this.a`即`obj.a`。
 
-Only the top/last level of an object property reference chain matters to the call-site. For instance:
+调用现场只关心对象属性引用链的顶部和底部，比如：
 
 ```js
 function foo() {
@@ -151,11 +145,11 @@ var obj1 = {
 obj1.obj2.foo(); // 42
 ```
 
-#### Implicitly Lost
+#### Implicitly Lost（隐式丢失）
 
-One of the most common frustrations that `this` binding creates is when an *implicitly bound* function loses that binding, which usually means it falls back to the *default binding*, of either the global object or `undefined`, depending on `strict mode`.
+一个很常见的由`this`绑定造成的误区就是当一个*implicitly bound*函数失去了绑定时，意味着会回退到*default binding*，即全局对象或`undefined`，取决于`strict mode`。
 
-Consider:
+思考：
 
 ```js
 function foo() {
@@ -174,9 +168,9 @@ var a = "oops, global"; // `a` also property on global object
 bar(); // "oops, global"
 ```
 
-Even though `bar` appears to be a reference to `obj.foo`, in fact, it's really just another reference to `foo` itself. Moreover, the call-site is what matters, and the call-site is `bar()`, which is a plain, un-decorated call and thus the *default binding* applies.
+尽管`bar`好像引用`obj.foo`，事实上，它只是另一个指向`foo`的引用，而且，调用现场才是关键，在这里是`bar()`，也就是普通的无修饰的调用，因此属于*default binding*范畴。
 
-The more subtle, more common, and more unexpected way this occurs is when we consider passing a callback function:
+更微妙、常见、又比较绕的方式就是当传递一个回调函数时：
 
 ```js
 function foo() {
@@ -199,9 +193,9 @@ var a = "oops, global"; // `a` also property on global object
 doFoo( obj.foo ); // "oops, global"
 ```
 
-Parameter passing is just an implicit assignment, and since we're passing a function, it's an implicit reference assignment, so the end result is the same as the previous snippet.
+参数传递仅仅是隐式的赋值，因为我们传递的时一个函数，所以它是一个隐式的引用赋值，所以最终结果和前一个例子一样。
 
-What if the function you're passing your callback to is not your own, but built-in to the language? No difference, same outcome.
+那么，如果传递的是内建的函数而不是你自定义的呢？一样的。
 
 ```js
 function foo() {
@@ -218,7 +212,7 @@ var a = "oops, global"; // `a` also property on global object
 setTimeout( obj.foo, 100 ); // "oops, global"
 ```
 
-Think about this crude theoretical pseudo-implementation of `setTimeout()` provided as a built-in from the JavaScript environment:
+思考这段粗略的理论上的JS内建函数`setTimeout()`的伪实现：
 
 ```js
 function setTimeout(fn,delay) {
@@ -231,17 +225,17 @@ It's quite common that our function callbacks *lose* their `this` binding, as we
 
 Either way the `this` is changed unexpectedly, you are not really in control of how your callback function reference will be executed, so you have no way (yet) of controlling the call-site to give your intended binding. We'll see shortly a way of "fixing" that problem by *fixing* the `this`.
 
-### Explicit Binding
+### Explicit Binding（显式绑定）
 
-With *implicit binding* as we just saw, we had to mutate the object in question to include a reference on itself to the function, and use this property function reference to indirectly (implicitly) bind `this` to the object.
+在*implicit binding*中我们看到，为了能够让函数可以自引用，我们需要修改对象，利用属性函数来间接（隐式）地把`this`绑定到对象上。
 
-But, what if you want to force a function call to use a particular object for the `this` binding, without putting a property function reference on the object?
+那么如果你不想在对象上新增一个属性方法，却要做到能让函数调用时能使用特定的对象绑定`this`呢？
 
-"All" functions in the language have some utilities available to them (via their `[[Prototype]]` -- more on that later) which can be useful for this task. Specifically, functions have `call(..)` and `apply(..)` methods. Technically, JavaScript host environments sometimes provide functions which are special enough (a kind way of putting it!) that they do not have such functionality. But those are few. The vast majority of functions provided, and certainly all functions you will create, do have access to `call(..)` and `apply(..)`.
+“所有”函数都有工具（通过`[[Prototype]]`，后面会讲）来完成这个任务，比如函数有`call(..)`和`apply(..)`方法，技术上来讲，JS主机环境有时也会提供一些特别的函数，它们没有这种功能。但是很少见，大多数提供的函数，以及你自己创建的，都有`call(..)`和`apply(..)`方法。
 
-How do these utilities work? They both take, as their first parameter, an object to use for the `this`, and then invoke the function with that `this` specified. Since you are directly stating what you want the `this` to be, we call it *explicit binding*.
+这些工具如何作用？它们都将第一个入参用作`this`，然后使用这个`this`激活函数。因为此时你是直接指定了`this`，所以我们把这种绑定叫做*explicit binding*。
 
-Consider:
+思考：
 
 ```js
 function foo() {
@@ -255,17 +249,17 @@ var obj = {
 foo.call( obj ); // 2
 ```
 
-Invoking `foo` with *explicit binding* by `foo.call(..)` allows us to force its `this` to be `obj`.
+通过`foo.call(..)`*显式绑定*来激活`foo`，这样就强制让`this`是那个`obj`。
 
-If you pass a simple primitive value (of type `string`, `boolean`, or `number`) as the `this` binding, the primitive value is wrapped in its object-form (`new String(..)`, `new Boolean(..)`, or `new Number(..)`, respectively). This is often referred to as "boxing".
+如果你传入的是基础类型的值（比如`string`、`number`、`boolean`）作为`this`绑定，那么基础值会被封装位对应的对象形式（`new String(..)`、`new Number(..)`、`new Boolean(..)`）的值，即“装箱”。
 
-**Note:** With respect to `this` binding, `call(..)` and `apply(..)` are identical. They *do* behave differently with their additional parameters, but that's not something we care about presently.
+**注意：**在`this`绑定上，`call(..)` and `apply(..)`是完全一样的，但是它们在其它的入参上却不一样，这些不是我们这里关注的。
 
-Unfortunately, *explicit binding* alone still doesn't offer any solution to the issue mentioned previously, of a function "losing" its intended `this` binding, or just having it paved over by a framework, etc.
+然而，仅仅使用*显式绑定*无法解决前面提到的问题：如果一个函数“失去了”它原本的`this`绑定，或者被框架覆盖了等。
 
-#### Hard Binding
+#### 硬绑定
 
-But a variation pattern around *explicit binding* actually does the trick. Consider:
+但是，基于*显式绑定*的一个变体模式却可以解决这个问题：
 
 ```js
 function foo() {
@@ -288,9 +282,9 @@ setTimeout( bar, 100 ); // 2
 bar.call( window ); // 2
 ```
 
-Let's examine how this variation works. We create a function `bar()` which, internally, manually calls `foo.call(obj)`, thereby forcibly invoking `foo` with `obj` binding for `this`. No matter how you later invoke the function `bar`, it will always manually invoke `foo` with `obj`. This binding is both explicit and strong, so we call it *hard binding*.
+我们来看下这种变体是如何生效的：我们创建一个内部调用`foo.call(obj)`的函数`bar()`，它强制让`foo`调用绑定`obj`给`this`，无论你以何种方式激活函数`bar`，它始终会用`obj`来激活`foo`，这种绑定既明显有强迫，所以叫做*硬绑定*。
 
-The most typical way to wrap a function with a *hard binding* creates a pass-thru of any arguments passed and any return value received:
+一个使用*硬绑定*封装的函数，会创建一个直接通道，它无视入参、返回：
 
 ```js
 function foo(something) {
@@ -310,7 +304,7 @@ var b = bar( 3 ); // 2 3
 console.log( b ); // 5
 ```
 
-Another way to express this pattern is to create a re-usable helper:
+另一个这种模式的使用场景就是创建可复用的帮助函数：
 
 ```js
 function foo(something) {
@@ -335,7 +329,7 @@ var b = bar( 3 ); // 2 3
 console.log( b ); // 5
 ```
 
-Since *hard binding* is such a common pattern, it's provided with a built-in utility as of ES5: `Function.prototype.bind`, and it's used like this:
+由于*硬绑定*太过常用，所以ES5将它内置在了函数里：`Function.prototype.bind`，使用方法如下：
 
 ```js
 function foo(something) {
@@ -353,15 +347,15 @@ var b = bar( 3 ); // 2 3
 console.log( b ); // 5
 ```
 
-`bind(..)` returns a new function that is hard-coded to call the original function with the `this` context set as you specified.
+`bind(..)`返回一个硬编码的函数，它强制使用你指定的`this`上下文来调用源函数。
 
-**Note:** As of ES6, the hard-bound function produced by `bind(..)` has a `.name` property that derives from the original *target function*. For example: `bar = foo.bind(..)` should have a `bar.name` value of `"bound foo"`, which is the function call name that should show up in a stack trace.
+**注意：**在ES6里，硬绑定函数`bind(..)`生成的函数还有一个`.name`属性，它继承自源*目标函数*，比如`bar = foo.bind(..)`会让`bar.name`等于`"bound foo"`，它是函数的调用名，会显示在调用堆栈里。
 
-#### API Call "Contexts"
+#### API调用“上下文”
 
-Many libraries' functions, and indeed many new built-in functions in the JavaScript language and host environment, provide an optional parameter, usually called "context", which is designed as a work-around for you not having to use `bind(..)` to ensure your callback function uses a particular `this`.
+很多库函数、JS的内建函数以及主机环境，都提供一个可选参数，通常叫做“上下文”，它保证你的回调函数使用特定的`this`，让你免去使用`bind(..)`来指定的麻烦。
 
-For instance:
+比如：
 
 ```js
 function foo(el) {
@@ -376,40 +370,43 @@ var obj = {
 [1, 2, 3].forEach( foo, obj ); // 1 awesome  2 awesome  3 awesome
 ```
 
-Internally, these various functions almost certainly use *explicit binding* via `call(..)` or `apply(..)`, saving you the trouble.
+这些众多函数内部都使用了`call(..)`或`apply(..)`*显式绑定*，节省你的时间。
 
-### `new` Binding
+### `new`绑定
 
-The fourth and final rule for `this` binding requires us to re-think a very common misconception about functions and objects in JavaScript.
+第四种（也是最后一种）`this`绑定规则需要我们重新思考一个关于JS中函数和对象的常见误解。
 
-In traditional class-oriented languages, "constructors" are special methods attached to classes, that when the class is instantiated with a `new` operator, the constructor of that class is called. This usually looks something like:
+在传统面向类的语言里，“构造器”是类的特殊方法，当通过`new`操作符来实例化一个类时，构造器会被调用，比如：
 
 ```js
 something = new MyClass(..);
 ```
 
-JavaScript has a `new` operator, and the code pattern to use it looks basically identical to what we see in those class-oriented languages; most developers assume that JavaScript's mechanism is doing something similar. However, there really is *no connection* to class-oriented functionality implied by `new` usage in JS.
+JS也有`new`操作符，而且使用方法和上面的面向类的语言是一样的，大多数开发者以为JS也是在做同样的事情，然而，两者其实并没有*任何关系*。
 
-First, let's re-define what a "constructor" in JavaScript is. In JS, constructors are **just functions** that happen to be called with the `new` operator in front of them. They are not attached to classes, nor are they instantiating a class. They are not even special types of functions. They're just regular functions that are, in essence, hijacked by the use of `new` in their invocation.
+首先，我们来重定义一下JS中的“构造器”，在JS里，构造器就**只是函数**，碰巧通过`new`操作符来调用罢了。他们不是附加在类上的，也不是用来实例化类的。他们甚至都不是特殊的函数，他们只是很普通的函数，本质上，在被激活时被`new`劫持了。
 
-For example, the `Number(..)` function acting as a constructor, quoting from the ES5.1 spec:
+比如，`Number(..)`函数作为一个构造器，引用ES5.1 spec：
 
 > 15.7.2 The Number Constructor
 >
 > When Number is called as part of a new expression it is a constructor: it initialises the newly created object.
 
-So, pretty much any ol' function, including the built-in object functions like `Number(..)` (see Chapter 3) can be called with `new` in front of it, and that makes that function call a *constructor call*. This is an important but subtle distinction: there's really no such thing as "constructor functions", but rather construction calls *of* functions.
+所以，几乎所有的函数，包括如`Number(..)`（参考第3章）这样的内建函数都可以通过`new`来调用，这样使得函数调用成为*构造器调用*。这是很微妙又关键的区别：JS里并没有“构造器函数”这样的东西，只有函数的*构造调用*。
 
-When a function is invoked with `new` in front of it, otherwise known as a constructor call, the following things are done automatically:
+当一个函数被`new`激活时，（即构造器调用），如下的步骤自动完成：
+
+1. 一个全新的对象被凭空创建（也称被构造）
+2. *新构造的对象*是`[[Prototype]]`链接的*
+3. 新构造的对象被当作函数调用的`this`绑定
+4. 如果函数没有返回它自己的替代**对象**，那么`new`激活的函数调用会*自动*返回新构造的对象
 
 1. a brand new object is created (aka, constructed) out of thin air
 2. *the newly constructed object is `[[Prototype]]`-linked*
 3. the newly constructed object is set as the `this` binding for that function call
 4. unless the function returns its own alternate **object**, the `new`-invoked function call will *automatically* return the newly constructed object.
 
-Steps 1, 3, and 4 apply to our current discussion. We'll skip over step 2 for now and come back to it in Chapter 5.
-
-Consider this code:
+步骤1、3、4符合我们目前的描述，我们先跳过步骤2（第5章会详述）：
 
 ```js
 function foo(a) {
@@ -420,15 +417,15 @@ var bar = new foo( 2 );
 console.log( bar.a ); // 2
 ```
 
-By calling `foo(..)` with `new` in front of it, we've constructed a new object and set that new object as the `this` for the call of `foo(..)`. **So `new` is the final way that a function call's `this` can be bound.** We'll call this *new binding*.
+通过`new`调用`foo(..)`，我们已经构造了一个新对象，并把这个新对象作为调用`foo(..)`时的`this`，**以上，`new`是一个函数调用的`this`绑定的最后一种方式**，我们称其为*new绑定*。
 
-## Everything In Order
+## 规则优先级
 
-So, now we've uncovered the 4 rules for binding `this` in function calls. *All* you need to do is find the call-site and inspect it to see which rule applies. But, what if the call-site has multiple eligible rules? There must be an order of precedence to these rules, and so we will next demonstrate what order to apply the rules.
+至此，我们讲到了函数调用时的4种`this`绑定规则，*所有*你需要做的就是找到调用现场，然后审视它，看哪种规则适用。但是，如果调用现场有多个规则都适用呢？肯定需要有优先级，我们接下来说明按照什么顺序来使用规则：
 
-It should be clear that the *default binding* is the lowest priority rule of the 4. So we'll just set that one aside.
+首先*默认绑定*是最低优先级的规则，所以我们先把它放一边。
 
-Which is more precedent, *implicit binding* or *explicit binding*? Let's test it:
+*隐式绑定*和*显示绑定*哪个优先级更高？我们看代码先：
 
 ```js
 function foo() {
@@ -452,9 +449,9 @@ obj1.foo.call( obj2 ); // 3
 obj2.foo.call( obj1 ); // 2
 ```
 
-So, *explicit binding* takes precedence over *implicit binding*, which means you should ask **first** if *explicit binding* applies before checking for *implicit binding*.
+所以，*显式绑定*优先级高于*隐式绑定*，当你在检查是否符合*隐式绑定*规则前，应该先检查是否*显式绑定*。
 
-Now, we just need to figure out where *new binding* fits in the precedence.
+现在，我们来看看*new绑定*的优先级：
 
 ```js
 function foo(something) {
@@ -478,15 +475,15 @@ console.log( obj1.a ); // 2
 console.log( bar.a ); // 4
 ```
 
-OK, *new binding* is more precedent than *implicit binding*. But do you think *new binding* is more or less precedent than *explicit binding*?
+好的，*new绑定*优先级高于*隐式绑定*，那么和*显式绑定比呢？
 
-**Note:** `new` and `call`/`apply` cannot be used together, so `new foo.call(obj1)` is not allowed, to test *new binding* directly against *explicit binding*. But we can still use a *hard binding* to test the precedence of the two rules.
+**注意：**`new`和`call/apply`不能同时使用，所以`new foo.call(obj1)`是禁止的，为了测*new绑定*和*显式绑定*，我们可以使用*硬绑定*来代替*显式绑定*。
 
-Before we explore that in a code listing, think back to how *hard binding* physically works, which is that `Function.prototype.bind(..)` creates a new wrapper function that is hard-coded to ignore its own `this` binding (whatever it may be), and use a manual one we provide.
+在我们使用代码探索这个问题前，回想一下*硬绑定*的工作原理，`Function.prototype.bind(..)`创建一个封装函数，它被硬编码为忽略自己的`this`绑定（无论是什么），而使用一个我们手动提供的。
 
-By that reasoning, it would seem obvious to assume that *hard binding* (which is a form of *explicit binding*) is more precedent than *new binding*, and thus cannot be overridden with `new`.
+通过上面分析，明显可以假定*硬绑定*优先级高于*new绑定*，从而不会被`new`重写。
 
-Let's check:
+我们来测试一下：
 
 ```js
 function foo(something) {
@@ -504,9 +501,9 @@ console.log( obj1.a ); // 2
 console.log( baz.a ); // 3
 ```
 
-Whoa! `bar` is hard-bound against `obj1`, but `new bar(3)` did **not** change `obj1.a` to be `3` as we would have expected. Instead, the *hard bound* (to `obj1`) call to `bar(..)` ***is*** able to be overridden with `new`. Since `new` was applied, we got the newly created object back, which we named `baz`, and we see in fact that  `baz.a` has the value `3`.
+哦！`bar`硬绑定了`obj1`，但是`new bar(3)`却**没有**如我们所预期的将`obj1.a`的值修改为`3`，相反，对`bar(..)`调用*硬绑定*（给`obj1`）***可以***被`new`重写，因为`new`生效了，所以得到了新创建的对象，名为`baz`，而且`baz.a`的值是`3`。
 
-This should be surprising if you go back to our "fake" bind helper:
+如果你回到我们的“伪”绑定帮助函数，你会很吃惊：
 
 ```js
 function bind(fn, obj) {
@@ -516,9 +513,9 @@ function bind(fn, obj) {
 }
 ```
 
-If you reason about how the helper's code works, it does not have a way for a `new` operator call to override the hard-binding to `obj` as we just observed.
+分析了帮助函数的工作原理后，你发现它没有一种让`new`操作符可以重写硬绑定到`obj1`的方法。
 
-But the built-in `Function.prototype.bind(..)` as of ES5 is more sophisticated, quite a bit so in fact. Here is the (slightly reformatted) polyfill provided by the MDN page for `bind(..)`:
+但是，ES5内建的`Function.prototype.bind(..)`更复杂，下面是MDN上的`bind(..)`的polyfill：
 
 ```js
 if (!Function.prototype.bind) {
@@ -553,9 +550,9 @@ if (!Function.prototype.bind) {
 }
 ```
 
-**Note:** The `bind(..)` polyfill shown above differs from the built-in `bind(..)` in ES5 with respect to hard-bound functions that will be used with `new` (see below for why that's useful). Because the polyfill cannot create a function without a `.prototype` as the built-in utility does, there's some nuanced indirection to approximate the same behavior. Tread carefully if you plan to use `new` with a hard-bound function and you rely on this polyfill.
+**注意：** 上面展示的`bind(..)`polyfill和ES5内建的`bind(..)`在硬绑定的函数被用于`new`构造时有所不同，因为polyfill无法创建一个没有`.prototype`的函数，而内建工具可以，在行为表现上两者几乎相同，如果你打算使用`new`在一个依赖polyfill的硬绑定函数上，你需要小心一些。
 
-The part that's allowing `new` overriding is:
+允许`new`复写的代码如下：
 
 ```js
 this instanceof fNOP &&
@@ -567,10 +564,11 @@ fNOP.prototype = this.prototype;
 fBound.prototype = new fNOP();
 ```
 
-We won't actually dive into explaining how this trickery works (it's complicated and beyond our scope here), but essentially the utility determines whether or not the hard-bound function has been called with `new` (resulting in a newly constructed object being its `this`), and if so, it uses *that* newly created `this` rather than the previously specified *hard binding* for `this`.
+这里我们不深入展开这种技巧的工作原理（很复杂，已经超出了我们这里的范围），但本质上使用方式决定了硬绑定函数是否可以被`new`调用（生成一个新构造的对象作为它的`this`），如果是，它会使用*那个*新生成的`this`而不是前面*硬绑定*的`this`。
 
-Why is `new` being able to override *hard binding* useful?
+为什么`new`复写*硬绑定*很有用？
 
+首要原因是这样可以创建一个本质上忽略*硬绑定*的`this`却预先给一些（或全部）函数入参赋了值的函数，
 The primary reason for this behavior is to create a function (that can be used with `new` for constructing objects) that essentially ignores the `this` *hard binding* but which presets some or all of the function's arguments. One of the capabilities of `bind(..)` is that any arguments passed after the first `this` binding argument are defaulted as standard arguments to the underlying function (technically called "partial application", which is a subset of "currying").
 
 For example:
@@ -592,25 +590,23 @@ baz.val; // p1p2
 
 ### Determining `this`
 
-Now, we can summarize the rules for determining `this` from a function call's call-site, in their order of precedence. Ask these questions in this order, and stop when the first rule applies.
+现在，我们来总结一下从函数调用现场决定`this`的规则，顺着优先级由高到低，当有规则适用时即停止。
 
-1. Is the function called with `new` (**new binding**)? If so, `this` is the newly constructed object.
+1. 函数是否由`new`调用？如果是，那么`this`就是新构造的对象。
 
-    `var bar = new foo()`
+`var bar = new foo()`
 
-2. Is the function called with `call` or `apply` (**explicit binding**), even hidden inside a `bind` *hard binding*? If so, `this` is the explicitly specified object.
+2. 函数是否由`call`或`apply`调用，或者由`bind`调用？如果是，`this`则是显式指定的对象。
 
-    `var bar = foo.call( obj2 )`
+`var bar = foo.call( obj2 )`
 
-3. Is the function called with a context (**implicit binding**), otherwise known as an owning or containing object? If so, `this` is *that* context object.
+3. 函数是否通过上下文调用，或者函数本身就是对象持有的属性？如果是，那么`this`就是这个上下文对象。
 
-    `var bar = obj1.foo()`
+`var bar = obj1.foo()`
 
-4. Otherwise, default the `this` (**default binding**). If in `strict mode`, pick `undefined`, otherwise pick the `global` object.
+4. 否则，`this`是默认绑定，在严格模式下取`undefined`，其它取`global`对象。
 
-    `var bar = foo()`
-
-That's it. That's *all it takes* to understand the rules of `this` binding for normal function calls. Well... almost.
+就酱紫，这就是关于普通函数的`this`绑定的规则理解的全部了，哦……几乎全部。
 
 ## Binding Exceptions
 
@@ -842,15 +838,12 @@ A program can effectively use both styles of code (lexical and `this`), but insi
 
 ## Review (TL;DR)
 
-Determining the `this` binding for an executing function requires finding the direct call-site of that function. Once examined, four rules can be applied to the call-site, in *this* order of precedence:
+从函数调用现场决定`this`的规则，顺着优先级由高到低，当有规则适用时即停止。
 
-1. Called with `new`? Use the newly constructed object.
-
-2. Called with `call` or `apply` (or `bind`)? Use the specified object.
-
-3. Called with a context object owning the call? Use that context object.
-
-4. Default: `undefined` in `strict mode`, global object otherwise.
+1. 由`new`调用，`this`就是新构造的对象。
+2. 由`call`或`apply`调用，或者由`bind`调用，`this`则是显式指定的对象。
+3. 通过上下文调用，或者函数本身就是对象持有的属性，么`this`就是这个上下文对象。
+4. 否则，`this`是默认绑定，在严格模式下取`undefined`，其它取`global`对象。
 
 Be careful of accidental/unintentional invoking of the *default binding* rule. In cases where you want to "safely" ignore a `this` binding, a "DMZ" object like `ø = Object.create(null)` is a good placeholder value that protects the `global` object from unintended side-effects.
 

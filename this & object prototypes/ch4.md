@@ -461,18 +461,18 @@ While this sort of technique seems to take useful advantage of `this` rebinding 
 
 ## Review (TL;DR)
 
-Classes are a design pattern. Many languages provide syntax which enables natural class-oriented software design. JS also has a similar syntax, but it behaves **very differently** from what you're used to with classes in those other languages.
+类是一种设计模式，很多语言提供支持面向类的软件设计语法，JS也有，但是它和你在其它语言中使用的**大为不同**。
 
-**Classes mean copies.**
+**类意味着复制。**
 
-When traditional classes are instantiated, a copy of behavior from class to instance occurs. When classes are inherited, a copy of behavior from parent to child also occurs.
+当传统的类被实例化时，从类复制到实例的行为就发生，当类被继承时，一个从父到子的复制行为发生。
 
-Polymorphism (having different functions at multiple levels of an inheritance chain with the same name) may seem like it implies a referential relative link from child back to parent, but it's still just a result of copy behavior.
+多态性（在继承链上存在不同等级的同名函数）看起来好像是有一个隐式的由子反指向父的链接，但它仍然是复制的结果。
 
-JavaScript **does not automatically** create copies (as classes imply) between objects.
+JS**不会自动**在对象之间创建复制（虽然类暗示着复制）。
 
-The mixin pattern (both explicit and implicit) is often used to *sort of* emulate class copy behavior, but this usually leads to ugly and brittle syntax like explicit pseudo-polymorphism (`OtherObj.methodName.call(this, ...)`), which often results in harder to understand and maintain code.
+混合模式（显式和隐式）经常被用来模拟类的复制行为，但是这会导致出现如显式伪-多态（`OtherObj.methodName.call(this, ...)`）这样的丑陋、脆弱的语法，最终代码变得难以理解和维护。
 
-Explicit mixins are also not exactly the same as class *copy*, since objects (and functions!) only have shared references duplicated, not the objects/functions duplicated themselves. Not paying attention to such nuance is the source of a variety of gotchas.
+显式混合也并不完全与类*复制*相同，因为对象（和函数！）只会复制引用，而不是复制它们自身，不注意到这一点会引发许多问题。
 
-In general, faking classes in JS often sets more landmines for future coding than solving present *real* problems.
+通常，JS中的伪类更多的带来了未来编码的坑，而不是解决当前的*真正*的问题。
