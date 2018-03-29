@@ -1,15 +1,11 @@
 # You Don't Know JS: ES6 & Beyond
-# Chapter 2: Syntax
+# 第2章：语法
 
-If you've been writing JS for any length of time, odds are the syntax is pretty familiar to you. There are certainly many quirks, but overall it's a fairly reasonable and straightforward syntax that draws many similarities from other languages.
+本书写作之时，很多浏览器已经实现了ES6的一些特性，但是只是一部分，所以建议通过这个在线工具来把玩所有新特性：ES6Fiddle(http://www.es6fiddle.net/)，它是Babel转换器(http://babeljs.io/repl/)的在线可交互控制台。
 
-However, ES6 adds quite a few new syntactic forms that take some getting used to. In this chapter, we'll tour through them to find out what's in store.
+## 块级作用域声明
 
-**Tip:** At the time of this writing, some of the features discussed in this book have been implemented in various browsers (Firefox, Chrome, etc.), but some have only been partially implemented and many others have not been implemented at all. Your experience may be mixed trying these examples directly. If so, try them out with transpilers, as most of these features are covered by those tools. ES6Fiddle (http://www.es6fiddle.net/) is a great, easy-to-use playground for trying out ES6, as is the online REPL for the Babel transpiler (http://babeljs.io/repl/).
-
-## Block-Scoped Declarations
-
-You're probably aware that the fundamental unit of variable scoping in JavaScript has always been the `function`. If you needed to create a block of scope, the most prevalent way to do so other than a regular function declaration was the immediately invoked function expression (IIFE). For example:
+我们知道JS中基本的变量作用域就是`function`，如果你想创建一个块作用域，最流行的方式就是立即执行函数表达式(IIFE)：
 
 ```js
 var a = 2;
@@ -22,9 +18,9 @@ var a = 2;
 console.log( a );		// 2
 ```
 
-### `let` Declarations
+### `let`声明
 
-However, we can now create declarations that are bound to any block, called (unsurprisingly) *block scoping*. This means all we need is a pair of `{ .. }` to create a scope. Instead of using `var`, which always declares variables attached to the enclosing function (or global, if top level) scope, use `let`:
+现在，我们只需要使用`{ .. }`就可以实现*块作用域*，在其中我们使用`let`，而不是会把变量声明附着在函数（或全局）的`var`：
 
 ```js
 var a = 2;
@@ -37,11 +33,7 @@ var a = 2;
 console.log( a );		// 2
 ```
 
-It's not very common or idiomatic thus far in JS to use a standalone `{ .. }` block, but it's always been valid. And developers from other languages that have *block scoping* will readily recognize that pattern.
-
-I believe this is the best way to create block-scoped variables, with a dedicated `{ .. }` block. Moreover, you should always put the `let` declaration(s) at the very top of that block. If you have more than one to declare, I'd recommend using just one `let`.
-
-Stylistically, I even prefer to put the `let` on the same line as the opening `{`, to make it clearer that this block is only for the purpose of declaring the scope for those variables.
+不过，一般也没有单独使用`{ .. }`块的。我个人很喜欢这种写法（它很清晰的表明变量是在这个块级作用域内）：
 
 ```js
 {	let a = 2, b, c;
@@ -49,51 +41,7 @@ Stylistically, I even prefer to put the `let` on the same line as the opening `{
 }
 ```
 
-Now, that's going to look strange and it's not likely going to match the recommendations given in most other ES6 literature. But I have reasons for my madness.
-
-There's another experimental (not standardized) form of the `let` declaration called the `let`-block, which looks like:
-
-```js
-let (a = 2, b, c) {
-	// ..
-}
-```
-
-That form is what I call *explicit* block scoping, whereas the `let ..` declaration form that mirrors `var` is more *implicit*, as it kind of hijacks whatever `{ .. }` pair it's found in. Generally developers find *explicit* mechanisms a bit more preferable than *implicit* mechanisms, and I claim this is one of those cases.
-
-If you compare the previous two snippet forms, they're very similar, and in my opinion both qualify stylistically as *explicit* block scoping. Unfortunately, the `let (..) { .. }` form, the most *explicit* of the options, was not adopted in ES6. That may be revisited post-ES6, but for now the former option is our best bet, I think.
-
-To reinforce the *implicit* nature of `let ..` declarations, consider these usages:
-
-```js
-let a = 2;
-
-if (a > 1) {
-	let b = a * 3;
-	console.log( b );		// 6
-
-	for (let i = a; i <= b; i++) {
-		let j = i + 10;
-		console.log( j );
-	}
-	// 12 13 14 15 16
-
-	let c = a + b;
-	console.log( c );		// 8
-}
-```
-
-Quick quiz without looking back at that snippet: which variable(s) exist only inside the `if` statement, and which variable(s) exist only inside the `for` loop?
-
-The answers: the `if` statement contains `b` and `c` block-scoped variables, and the `for` loop contains `i` and `j` block-scoped variables.
-
-Did you have to think about it for a moment? Does it surprise you that `i` isn't added to the enclosing `if` statement scope? That mental pause and questioning -- I call it a "mental tax" -- comes from the fact that this `let` mechanism is not only new to us, but it's also *implicit*.
-
-There's also hazard in the `let c = ..` declaration appearing so far down in the scope. Unlike traditional `var`-declared variables, which are attached to the entire enclosing function scope regardless of where they appear, `let` declarations attach to the block scope but are not initialized until they appear in the block.
-
-Accessing a `let`-declared variable earlier than its `let ..` declaration/initialization causes an error, whereas with `var` declarations the ordering doesn't matter (except stylistically).
-
-Consider:
+如果在声明前调用了变量，那么会报错误：
 
 ```js
 {
@@ -101,13 +49,13 @@ Consider:
 	console.log( b );	// ReferenceError!
 
 	var a;
-	let b;
+	let b; // 默认初始化值为undefined
 }
 ```
 
 **Warning:** This `ReferenceError` from accessing too-early `let`-declared references is technically called a *Temporal Dead Zone (TDZ)* error -- you're accessing a variable that's been declared but not yet initialized. This will not be the only time we see TDZ errors -- they crop up in several places in ES6. Also, note that "initialized" doesn't require explicitly assigning a value in your code, as `let b;` is totally valid. A variable that's not given an assignment at declaration time is assumed to have been assigned the `undefined` value, so `let b;` is the same as `let b = undefined;`. Explicit assignment or not, you cannot access `b` until the `let b` statement is run.
 
-One last gotcha: `typeof` behaves differently with TDZ variables than it does with undeclared (or declared!) variables. For example:
+但是有个问题：`typeof`的表现和上面的`let`有点儿不同：
 
 ```js
 {
@@ -126,16 +74,6 @@ One last gotcha: `typeof` behaves differently with TDZ variables than it does wi
 	let b;
 }
 ```
-
-The `a` is not declared, so `typeof` is the only safe way to check for its existence or not. But `typeof b` throws the TDZ error because farther down in the code there happens to be a `let b` declaration. Oops.
-
-Now it should be clearer why I insist that `let` declarations should all be at the top of their scope. That totally avoids the accidental errors of accessing too early. It also makes it more *explicit* when you look at the start of a block, any block, what variables it contains.
-
-Your blocks (`if` statements, `while` loops, etc.) don't have to share their original behavior with scoping behavior.
-
-This explicitness on your part, which is up to you to maintain with discipline, will save you lots of refactor headaches and footguns down the line.
-
-**Note:** For more information on `let` and block scoping, see Chapter 3 of the *Scope & Closures* title of this series.
 
 #### `let` + `for`
 

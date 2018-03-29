@@ -77,9 +77,7 @@ Transpilers perform these transformations for you, usually in a build workflow s
 
 ### Shims/Polyfills
 
-Not all new ES6 features need a transpiler. Polyfills (aka shims) are a pattern for defining equivalent behavior from a newer environment into an older environment, when possible. Syntax cannot be polyfilled, but APIs often can be.
-
-For example, `Object.is(..)` is a new utility for checking strict equality of two values but without the nuanced exceptions that `===` has for `NaN` and `-0` values. The polyfill for `Object.is(..)` is pretty easy:
+不是所有的ES6特性都需要转换器，可以利用Polyfills这种方式在旧环境里模拟新环境里的新特性，语法的无法实现，但是API一般都可以，比如`Object.is(..)`是用来判断两个值是否相等的新方法，我们可以这么polyfill：
 
 ```js
 if (!Object.is) {
@@ -98,13 +96,13 @@ if (!Object.is) {
 }
 ```
 
-**Tip:** Pay attention to the outer `if` statement guard wrapped around the polyfill. This is an important detail, which means the snippet only defines its fallback behavior for older environments where the API in question isn't already defined; it would be very rare that you'd want to overwrite an existing API.
+**Tip:** 注意最外层的判断，它只会在旧环境中定义`Object.is`，而不回覆盖新环境中已有的API。
 
-There's a great collection of ES6 shims called "ES6 Shim" (https://github.com/paulmillr/es6-shim/) that you should definitely adopt as a standard part of any new JS project!
+有一个大型的"ES6 Shim"集合你应该在使用ES新特性的工程里使用： (https://github.com/paulmillr/es6-shim/)。
 
-It is assumed that JS will continue to evolve constantly, with browsers rolling out support for features continually rather than in large chunks. So the best strategy for keeping updated as it evolves is to just introduce polyfill shims into your code base, and a transpiler step into your build workflow, right now and get used to that new reality.
+JS将继续不断发展，浏览器只会逐渐推出对新功能的支持，而不是一次性全部支持。因此，随着它的发展，保持更新的最佳策略就是将polyfill引入您的代码库，然后将转译器引入您的构建工作流程，并习惯这种操作。
 
-If you decide to keep the status quo and just wait around for all browsers without a feature supported to go away before you start using the feature, you're always going to be way behind. You'll sadly be missing out on all the innovations designed to make writing JavaScript more effective, efficient, and robust.
+如果您决定保持现状，只需等待所有未支持功能的浏览器即可开始使用该功能，那么您总是会落伍于此。您会遗憾地错过所有旨在使JavaScript更有效，更高效和更强大的创新。
 
 ## Review
 

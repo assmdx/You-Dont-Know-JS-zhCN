@@ -42,13 +42,9 @@ myObject.a; // 2
 
 **Note:** We will explain what `Object.create(..)` does, and how it operates, shortly. For now, just assume it creates an object with the `[[Prototype]]` linkage we're examining to the object specified.
 
-So, we have `myObject` that is now `[[Prototype]]` linked to `anotherObject`. Clearly `myObject.a` doesn't actually exist, but nevertheless, the property access succeeds (being found on `anotherObject` instead) and indeed finds the value `2`.
+`myObject`链向`anotherObject`，明显`myObject.a`不存在，但是这个访问却取到了`2`，所以访问属性，是在原型链上逐级向上查找的。
 
-But, if `a` weren't found on `anotherObject` either, its `[[Prototype]]` chain, if non-empty, is again consulted and followed.
-
-This process continues until either a matching property name is found, or the `[[Prototype]]` chain ends. If no matching property is *ever* found by the end of the chain, the return result from the `[[Get]]` operation is `undefined`.
-
-Similar to this `[[Prototype]]` chain look-up process, if you use a `for..in` loop to iterate over an object, any property that can be reached via its chain (and is also `enumerable` -- see Chapter 3) will be enumerated. If you use the `in` operator to test for the existence of a property on an object, `in` will check the entire chain of the object (regardless of *enumerability*).
+类似`[[Prototype]]`链，`for..in`也检查整个原型链上的属性（无视*可枚举性*）。
 
 ```js
 var anotherObject = {
@@ -90,17 +86,17 @@ If `foo` is not already present directly on `myObject`, the `[[Prototype]]` chai
 
 However, if `foo` is already present somewhere higher in the chain, nuanced (and perhaps surprising) behavior can occur with the `myObject.foo = "bar"` assignment. We'll examine that more in just a moment.
 
-If the property name `foo` ends up both on `myObject` itself and at a higher level of the `[[Prototype]]` chain that starts at `myObject`, this is called *shadowing*. The `foo` property directly on `myObject` *shadows* any `foo` property which appears higher in the chain, because the `myObject.foo` look-up would always find the `foo` property that's lowest in the chain.
+`myObject`里的属性`foo`会*覆盖*原型链上更高级的对象属性`foo`，因为查找方式是从低处开始的。
 
-As we just hinted, shadowing `foo` on `myObject` is not as simple as it may seem. We will now examine three scenarios for the `myObject.foo = "bar"` assignment when `foo` is **not** already on `myObject` directly, but **is** at a higher level of `myObject`'s `[[Prototype]]` chain:
+下面我们来看下上述情况下`myObject.foo = "bar"`操作在三种不同场景下的表现：
 
-1. If a normal data accessor (see Chapter 3) property named `foo` is found anywhere higher on the `[[Prototype]]` chain, **and it's not marked as read-only (`writable:false`)** then a new property called `foo` is added directly to `myObject`, resulting in a **shadowed property**.
-2. If a `foo` is found higher on the `[[Prototype]]` chain, but it's marked as **read-only (`writable:false`)**, then both the setting of that existing property as well as the creation of the shadowed property on `myObject` **are disallowed**. If the code is running in `strict mode`, an error will be thrown. Otherwise, the setting of the property value will silently be ignored. Either way, **no shadowing occurs**.
-3. If a `foo` is found higher on the `[[Prototype]]` chain and it's a setter (see Chapter 3), then the setter will always be called. No `foo` will be added to (aka, shadowed on) `myObject`, nor will the `foo` setter be redefined.
+1. 如果`[[Prototype]]`链上更高级查到了`foo`属性，**并且没有被标为只读（`writable:false`）**，当一个称为`foo`的属性被添加到`muObject`上时，会导致**属性覆盖**。
+2. 如果在更高级查到了`foo`，但是被标记成了**只读**，在严格模式下会报错，否则会被忽略，即**不会发生属性覆盖**。
+3. 如果在更高级查到了`foo`，而且它是一个`setter`（见第三章），那么`setter`会被调用，`foo`不会被添加到`myObject`上，`foo`的setter也不会被重定义。
 
-Most developers assume that assignment of a property (`[[Put]]`) will always result in shadowing if the property already exists higher on the `[[Prototype]]` chain, but as you can see, that's only true in one (#1) of the three situations just described.
+大多数开发者认为，如果原型链上存在某个属性，那么该属性赋值（`[[PUT]]`)都会引起属性覆盖，实际上只有场景1才会。
 
-If you want to shadow `foo` in cases #2 and #3, you cannot use `=` assignment, but must instead use `Object.defineProperty(..)` (see Chapter 3) to add `foo` to `myObject`.
+如果想在场景2、3下也覆盖`foo`，那么需要使用`Object.defineProperty(..)`来给`myObject`添加属性`foo`。
 
 **Note:** Case #2 may be the most surprising of the three. The presence of a *read-only* property prevents a property of the same name being implicitly created (shadowed) at a lower level of a `[[Prototype]]` chain. The reason for this restriction is primarily to reinforce the illusion of class-inherited properties. If you think of the `foo` at a higher level of the chain as having been inherited (copied down) to `myObject`, then it makes sense to enforce the non-writable nature of that `foo` property on `myObject`. If you however separate the illusion from the fact, and recognize that no such inheritance copying *actually* occurred (see Chapters 4 and 5), it's a little unnatural that `myObject` would be prevented from having a `foo` property just because some other object had a non-writable `foo` on it. It's even stranger that this restriction only applies to `=` assignment, but is not enforced when using `Object.defineProperty(..)`.
 
