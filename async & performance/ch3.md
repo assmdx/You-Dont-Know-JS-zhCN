@@ -366,7 +366,7 @@ p.then( baz, oopsBaz );
 
 因此，经决定，如何识别一个Promise（或者行为像Promise的东西）就是定义一些有`then(..)`方法的任何对象或函数被称为"thenable"的东西。任何这种值都是一个遵守Promise的thenable。
 
-The general term for "type checks" that make assumptions about a value's "type" based on its shape (what properties are present) is called "duck typing" -- "If it looks like a duck, and quacks like a duck, it must be a duck" (see the *Types & Grammar* title of this book series). So the duck typing check for a thenable would roughly be:
+“类型检查”的鸭子类型一般是指，根据它的外表（表现出来的属性）推测一个值的“类型”——“如果它看起来像鸭子，并且像鸭子一样叫，那么它一定是只鸭子”（参见*Type & Grammer这本书），因此对thenable的鸭子类型检查大概如下：
 
 ```js
 if (
@@ -384,11 +384,7 @@ else {
 }
 ```
 
-Yuck! Setting aside the fact that this logic is a bit ugly to implement in various places, there's something deeper and more troubling going on.
-
-If you try to fulfill a Promise with any object/function value that happens to have a `then(..)` function on it, but you weren't intending it to be treated as a Promise/thenable, you're out of luck, because it will automatically be recognized as thenable and treated with special rules (see later in the chapter).
-
-This is even true if you didn't realize the value has a `then(..)` on it. For example:
+呃！且不论丑陋的逻辑，这里还存在更严重的问题。如果你在解析Promise时，遇到了恰好有`then(..)`函数的对象或函数，你一定不想它被当作一个Promise/thenable，不幸的是，它会被识别为thenable并用特别的规则来处理（见后面的章节），当你完全不知道是否有个`then(..)`函数时，这种情况更为明显：
 
 ```js
 var o = { then: function(){} };
@@ -402,11 +398,9 @@ v.otherStuff = "not so cool";
 v.hasOwnProperty( "then" );		// false
 ```
 
-`v` doesn't look like a Promise or thenable at all. It's just a plain object with some properties on it. You're probably just intending to send that value around like any other object.
+`v`看起来不是个Promise或thenable，它只是一个普通的持有一些属性的对象，你会像使用其它对象一样传递它，但是`v`却是`[[Prototype]]`链向另一个对象`o`的，而后者正好有个`then(..)`函数，所以thenable鸭子模型检查会认为`v`是thenable的。
 
-But unknown to you, `v` is also `[[Prototype]]`-linked (see the *this & Object Prototypes* title of this book series) to another object `o`, which happens to have a `then(..)` on it. So the thenable duck typing checks will think and assume `v` is a thenable. Uh oh.
-
-It doesn't even need to be something as directly intentional as that:
+甚至都不需要那么直接：
 
 ```js
 Object.prototype.then = function(){};
@@ -416,49 +410,42 @@ var v1 = { hello: "world" };
 var v2 = [ "Hello", "World" ];
 ```
 
-Both `v1` and `v2` will be assumed to be thenables. You can't control or predict if any other code accidentally or maliciously adds `then(..)` to `Object.prototype`, `Array.prototype`, or any of the other native prototypes. And if what's specified is a function that doesn't call either of its parameters as callbacks, then any Promise resolved with such a value will just silently hang forever! Crazy.
+`v1`和`v2`被认为是thenable，你无法控制或预测是否其它代码偶然或不小心的给`Object.prototype`（`Array.prototype`或其它基础原型）添加了`then(..)`，而且如果一个参数是回调的函数没有被调用，那么任何通过该值revolve的Promise会一只挂着。
 
-Sound implausible or unlikely? Perhaps.
+听起来很难以置信是吧，也许。
 
-But keep in mind that there were several well-known non-Promise libraries preexisting in the community prior to ES6 that happened to already have a method on them called `then(..)`. Some of those libraries chose to rename their own methods to avoid collision (that sucks!). Others have simply been relegated to the unfortunate status of "incompatible with Promise-based coding" in reward for their inability to change to get out of the way.
+但是记住在ES6之前，很多著名的non-Promise库都有一个`then(..)`方法，这些库里的一些选择重命名自己的方法来避免冲突。其它则是简单的降级到“不兼容Promise编程”的不幸状态，因为它们无力对此作出改变。
 
-The standards decision to hijack the previously nonreserved -- and completely general-purpose sounding -- `then` property name means that no value (or any of its delegates), either past, present, or future, can have a `then(..)` function present, either on purpose or by accident, or that value will be confused for a thenable in Promises systems, which will probably create bugs that are really hard to track down.
+最合理的防止前面的情况发生的办法就是，`then`属性意味着无论何时（历史、当前、未来）不允许值（或者它的委托）可以持有`then(..)`属性，不管是有意或者无意，不然这个值会和Promise系统中的thenable弄混，从而产生很难定位的bug。
 
-**Warning:** I do not like how we ended up with duck typing of thenables for Promise recognition. There were other options, such as "branding" or even "anti-branding"; what we got seems like a worst-case compromise. But it's not all doom and gloom. Thenable duck typing can be helpful, as we'll see later. Just beware that thenable duck typing can be hazardous if it incorrectly identifies something as a Promise that isn't.
-
+**警告：** 我个人并不喜欢我们通过鸭子模型来识别Promise的thenable，还有更好的方法，比如“branding“甚至”anti-branding“，我们接受的（鸭子模型）像个最坏情况的妥协，但也没有那么坏啦，thenable鸭子模型也很有用（我们后面会说），只要记得这个模型如果错误的识别了Promise，会产生一些问题。
 ## Promise Trust
 
-We've now seen two strong analogies that explain different aspects of what Promises can do for our async code. But if we stop there, we've missed perhaps the single most important characteristic that the Promise pattern establishes: trust.
+在第二章我们提到了*控制反转*中的信任危机问题，现在我们来深入看一下Promise是如何解决这些问题的。
 
-Whereas the *future values* and *completion events* analogies play out explicitly in the code patterns we've explored, it won't be entirely obvious why or how Promises are designed to solve all of the *inversion of control* trust issues we laid out in the "Trust Issues" section of Chapter 2. But with a little digging, we can uncover some important guarantees that restore the confidence in async coding that Chapter 2 tore down!
+回调编程会有如下几个问题（比如传递给`foo(..)`回调函数）：
 
-Let's start by reviewing the trust issues with callbacks-only coding. When you pass a callback to a utility `foo(..)`, it might:
-
-* Call the callback too early
-* Call the callback too late (or never)
-* Call the callback too few or too many times
-* Fail to pass along any necessary environment/parameters
-* Swallow any errors/exceptions that may happen
-
-The characteristics of Promises are intentionally designed to provide useful, repeatable answers to all these concerns.
+* 过早调用了回调
+* 过晚调用
+* 过多／少调用
+* 传递必要参数失败
+* 吞没了错误／异常
 
 ### Calling Too Early
 
-Primarily, this is a concern of whether code can introduce Zalgo-like effects (see Chapter 2), where sometimes a task finishes synchronously and sometimes asynchronously, which can lead to race conditions.
+这个一般是指有时一个任务时同步完成的有时又是异步完成的（称Zalgo），这样就会出现竞态条件。
 
-Promises by definition cannot be susceptible to this concern, because even an immediately fulfilled Promise (like `new Promise(function(resolve){ resolve(42); })`) cannot be *observed* synchronously.
+Promise无论是立即完成（如`new Promise(function(resolve){ resolve(42); })`）还是延迟完成，它都是同步*观测*的。即，当你调用`then(..)`时，即便Promise已经resolved了，你提供给`then(..)`的回调**仍然**会异步的调用（查看第一章的“Jobs“）。
 
-That is, when you call `then(..)` on a Promise, even if that Promise was already resolved, the callback you provide to `then(..)` will **always** be called asynchronously (for more on this, refer back to "Jobs" in Chapter 1).
-
-No more need to insert your own `setTimeout(..,0)` hacks. Promises prevent Zalgo automatically.
+所以，不需要再插入你自己的`setTimeout(..,0)`，Promise已经自动阻止了Zalgo。
 
 ### Calling Too Late
 
-Similar to the previous point, a Promise's `then(..)` registered observation callbacks are automatically scheduled when either `resolve(..)` or `reject(..)` are called by the Promise creation capability. Those scheduled callbacks will predictably be fired at the next asynchronous moment (see "Jobs" in Chapter 1).
+与前一点类似，Promise的`then(..)`注册的回调监控，当`resolve(..)`或`reject(..)`被调用时，会自动调用对应的回调，这些已预定的回调会在下一个异步时刻被激活（参考第一章“Jobs”）。
 
-It's not possible for synchronous observation, so it's not possible for a synchronous chain of tasks to run in such a way to in effect "delay" another callback from happening as expected. That is, when a Promise is resolved, all `then(..)` registered callbacks on it will be called, in order, immediately at the next asynchronous opportunity (again, see "Jobs" in Chapter 1), and nothing that happens inside of one of those callbacks can affect/delay the calling of the other callbacks.
+但是无法做到同步观测，所以不能用来进行同步链任务的执行，也就是说，当一个Promise被resolve，所有给它通过`then(..)`注册的回调都会被在下一个异步时刻立即按（注册）顺序调用，这些回调不会影响／延迟彼此的调用。
 
-For example:
+比如：
 
 ```js
 p.then( function(){
@@ -473,13 +460,11 @@ p.then( function(){
 // A B C
 ```
 
-Here, `"C"` cannot interrupt and precede `"B"`, by virtue of how Promises are defined to operate.
+这里，`"C"`不会中断或先于`"B"`，基于Promise的操作定义。
 
 #### Promise Scheduling Quirks
 
-It's important to note, though, that there are lots of nuances of scheduling where the relative ordering between callbacks chained off two separate Promises is not reliably predictable.
-
-If two promises `p1` and `p2` are both already resolved, it should be true that `p1.then(..); p2.then(..)` would end up calling the callback(s) for `p1` before the ones for `p2`. But there are subtle cases where that might not be true, such as the following:
+需要强调的是，两个独立Promise的回调顺序是不可预测的，如果两个Promise`p1`和`p2`都resolve了，理论上`p1.then(..); p2.then(..)`这种写法会让`p1`的回调先于`p2`的执行，但有一些场景下并非如此：
 
 ```js
 var p3 = new Promise( function(resolve,reject){
@@ -505,19 +490,19 @@ p2.then( function(v){
 // A B  <-- not  B A  as you might expect
 ```
 
-We'll cover this more later, but as you can see, `p1` is resolved not with an immediate value, but with another promise `p3` which is itself resolved with the value `"B"`. The specified behavior is to *unwrap* `p3` into `p1`, but asynchronously, so `p1`'s callback(s) are *behind* `p2`'s callback(s) in the asynchronous Job queue (see Chapter 1).
+我们会在后面讲解这一点，但是你可以看到，`p1`是通过一个非即时值（`p3`）resolve的，`p3`又是通过`"B"`来resolve的，特别的行为就是将`p3`*拆包*进`p1`，但是是异步的，所以`p1`的回调在异步作业队列（见第一章）上*落*在了`p2`回调后。
 
-To avoid such nuanced nightmares, you should never rely on anything about the ordering/scheduling of callbacks across Promises. In fact, a good practice is not to code in such a way where the ordering of multiple callbacks matters at all. Avoid that if you can.
+为了避免这种问题，你在编程中不应该依赖Promise之间的回调执行／调度顺序，事实上，最佳实践是如果需要按顺序执行回调，你不应该这么编码。请尽量避免哦。
 
 ### Never Calling the Callback
 
-This is a very common concern. It's addressable in several ways with Promises.
+这个问题经常会遇到，Promise从几个方面解决了这个问题。
 
-First, nothing (not even a JS error) can prevent a Promise from notifying you of its resolution (if it's resolved). If you register both fulfillment and rejection callbacks for a Promise, and the Promise gets resolved, one of the two callbacks will always be called.
+首先，什么（甚至JS错误）也无法阻止Promise通知你它的完成情况（是否resolve了），如果你注册了成功和失败回调，如果Promise被resolve了，那么两者之一会被调用。
 
-Of course, if your callbacks themselves have JS errors, you may not see the outcome you expect, but the callback will in fact have been called. We'll cover later how to be notified of an error in your callback, because even those don't get swallowed.
+当然如果你的回调函数里如果有错误，那么你可能会看不到你期望的结果，但是回调确实被调用了，我们会在后面讲如何在你的回调里通知错误，因为它们不会被吞没。
 
-But what if the Promise itself never gets resolved either way? Even that is a condition that Promises provide an answer for, using a higher level abstraction called a "race":
+但是，如果Promise一直都不resolve呢？Promise也为这种情况提供了一个高级别的抽象概念，叫“race”：
 
 ```js
 // a utility for timing out a Promise
@@ -546,39 +531,29 @@ Promise.race( [
 );
 ```
 
-There are more details to consider with this Promise timeout pattern, but we'll come back to it later.
-
-Importantly, we can ensure a signal as to the outcome of `foo()`, to prevent it from hanging our program indefinitely.
+这里有很多要详解的细节，我们随后会说。重要的是，我们可以保证`foo()`的一个结果，防止它长久挂起程序。
 
 ### Calling Too Few or Too Many Times
 
-By definition, *one* is the appropriate number of times for the callback to be called. The "too few" case would be zero calls, which is the same as the "never" case we just examined.
+根据定义，回调应该只能被调用*一*次，“太少“意味着没有调用，”太多“容易解释。Promise被设计成只能被resolve一次，如果Promise的创建代码试图多次调用`resolve(..)`或`reject(..)`，那么Promise只会接受第一次的结果，静默忽略其余的。
 
-The "too many" case is easy to explain. Promises are defined so that they can only be resolved once. If for some reason the Promise creation code tries to call `resolve(..)` or `reject(..)` multiple times, or tries to call both, the Promise will accept only the first resolution, and will silently ignore any subsequent attempts.
+因此，`then(..)`注册的（每一个）回调函数也只会被调用一次。
 
-Because a Promise can only be resolved once, any `then(..)` registered callbacks will only ever be called once (each).
-
-Of course, if you register the same callback more than once, (e.g., `p.then(f); p.then(f);`), it'll be called as many times as it was registered.  The guarantee that a response function is called only once does not prevent you from shooting yourself in the foot.
+当然，如果你把同一个回调函数注册多次（比如：`p.then(f); p.then(f);`)，它会被多次调用，保证一个响应函数只被调用一次并不能避免你自己搬石头砸自己脚。
 
 ### Failing to Pass Along Any Parameters/Environment
 
-Promises can have, at most, one resolution value (fulfillment or rejection).
+Promise至多只能有一个解决值（成功或失败）。如果你不显式的resolve任何值，值就是`undefiend`，无论值是什么，他都会被传给所有注册了的回调函数，*现在*或将来。
 
-If you don't explicitly resolve with a value either way, the value is `undefined`, as is typical in JS. But whatever the value, it will always be passed to all registered (and appropriate: fulfillment or rejection) callbacks, either *now* or in the future.
+一些需要注意的地方：如果你给`resolve(..)`或`reject(..)`传递了多个参数，那么除了第一个外其余的参数都会被忽略。如果你需要传递多个值，你需要将它们包裹到一个值里，比如`array`或`object`。
 
-Something to be aware of: If you call `resolve(..)` or `reject(..)` with multiple parameters, all subsequent parameters beyond the first will be silently ignored. Although that might seem a violation of the guarantee we just described, it's not exactly, because it constitutes an invalid usage of the Promise mechanism. Other invalid usages of the API (such as calling `resolve(..)` multiple times) are similarly *protected*, so the Promise behavior here is consistent (if not a tiny bit frustrating).
-
-If you want to pass along multiple values, you must wrap them in another single value that you pass, such as an `array` or an `object`.
-
-As for environment, functions in JS always retain their closure of the scope in which they're defined (see the *Scope & Closures* title of this series), so they of course would continue to have access to whatever surrounding state you provide. Of course, the same is true of callbacks-only design, so this isn't a specific augmentation of benefit from Promises -- but it's a guarantee we can rely on nonetheless.
+对于执行环境来讲，JS中的函数总是会保持它们自己的被定义时的作用域（参考*Scope & Closures*这本书），所以它们可以访问你提供的外部状态，回调函数也是，所以这一点并不是Promise的特性。
 
 ### Swallowing Any Errors/Exceptions
 
-In the base sense, this is a restatement of the previous point. If you reject a Promise with a *reason* (aka error message), that value is passed to the rejection callback(s).
+这一节是对前面一点的详细说明，如果你reject了一个Promise，并传递了*原因*（比如错误信息），这个值会被传递给失败回调函数里。我们这里还要说一个更大的点，在创建Promise时或者在观测它的解决时，发生了一个JS异常／错误，比如`TypeError`或者`ReferenceError`，这个异常会被捕获，并强制让Promise被reject。
 
-But there's something much bigger at play here. If at any point in the creation of a Promise, or in the observation of its resolution, a JS exception error occurs, such as a `TypeError` or `ReferenceError`, that exception will be caught, and it will force the Promise in question to become rejected.
-
-For example:
+比如：
 
 ```js
 var p = new Promise( function(resolve,reject){
@@ -597,10 +572,9 @@ p.then(
 );
 ```
 
-The JS exception that occurs from `foo.bar()` becomes a Promise rejection that you can catch and respond to.
+从`foo.bar()`出现的JS异常，成为了Promise的rejection，而你也可以捕获并进行处理。这一点很重要，因为它有效的解决了另一个潜在的Zalgo时刻：当错误发生时，会产生一个同步的反应，而无错误的处理是异步的。Promise把JS异常也转为了异步行为，因此有效减少了竞态条件的发生。
 
-This is an important detail, because it effectively solves another potential Zalgo moment, which is that errors could create a synchronous reaction whereas nonerrors would be asynchronous. Promises turn even JS exceptions into asynchronous behavior, thereby reducing the race condition chances greatly.
-
+但是，如果Promise是fulfilled，但是在观测时发生了JS异常（在`then(..)`注册的回调里）会怎么样？即使那些没有消失，但你会发现它们的处理是多么的神奇（除非你很懂）：
 But what happens if a Promise is fulfilled, but there's a JS exception error during the observation (in a `then(..)` registered callback)? Even those aren't lost, but you may find how they're handled a bit surprising, until you dig in a little deeper:
 
 ```js
@@ -618,24 +592,44 @@ p.then(
 	}
 );
 ```
+稍等，上面代码里`foo.bar()`的异常并没有被吞没，不用担心，它的确不会。但是还有更深入的问题，那就是**我们没有监听到这个失败**，`p.then(..)`的调用会返回另一个Promise，它是被`ReferenceError`异常rejected了的。
 
-Wait, that makes it seem like the exception from `foo.bar()` really did get swallowed. Never fear, it didn't. But something deeper is wrong, which is that we've failed to listen for it. The `p.then(..)` call itself returns another promise, and it's *that* promise that will be rejected with the `TypeError` exception.
+为什么它不直接调用我们提供的错误处理呢？尽管看起来应该那样子，但是它有悖于Promise的基本设计原则：一旦resolve就**不可改变**，即`p`已经通过`42`被fulfilled了，所以不能因为后面观察`p`的解决时出了错误，就将它改为rejection。
 
-Why couldn't it just call the error handler we have defined there? Seems like a logical behavior on the surface. But it would violate the fundamental principle that Promises are **immutable** once resolved. `p` was already fulfilled to the value `42`, so it can't later be changed to a rejection just because there's an error in observing `p`'s resolution.
+而且，除了设计原则的问题，这种行为会造成严重问题，比如这里有很多`then(..)`注册给`p`的回调函数，如果像上面那种修改其resolve状态，那么就会导致有些回调调用了（有异常的回调前面的），有些还没有（在有异常的那个回调之后的）。
 
-Besides the principle violation, such behavior could wreak havoc, if say there were multiple `then(..)` registered callbacks on the promise `p`, because some would get called and others wouldn't, and it would be very opaque as to why.
+【译者注：比如可以再`.then`一把，就可以获取到异常了】
+```js
+var p = new Promise( function(resolve,reject){
+	resolve( 42 );
+} );
+
+p.then(
+	function (msg){
+		foo.bar();
+		console.log( msg );
+	},
+	function (err){
+		console.log(err);
+	}
+).then(
+	function (msg){
+		console.log( msg );
+	},
+	function (err){
+		console.log(err);
+	}
+);
+```
 
 ### Trustable Promise?
 
-There's one last detail to examine to establish trust based on the Promise pattern.
+还有最后一点关于Promise模式的信任建立的检验。
 
+可以看到Promise并没有完全抛弃回调，它们只是改变了回调传递的位置，不再是把回调传递给`foo(..)`，然后从`foo(..)`返回获取*一些东西*，而是把回调传给*一些东西*。
 You've no doubt noticed that Promises don't get rid of callbacks at all. They just change where the callback is passed to. Instead of passing a callback to `foo(..)`, we get *something* (ostensibly a genuine Promise) back from `foo(..)`, and we pass the callback to that *something* instead.
 
-But why would this be any more trustable than just callbacks alone? How can we be sure the *something* we get back is in fact a trustable Promise? Isn't it basically all just a house of cards where we can trust only because we already trusted?
-
-One of the most important, but often overlooked, details of Promises is that they have a solution to this issue as well. Included with the native ES6 `Promise` implementation is `Promise.resolve(..)`.
-
-If you pass an immediate, non-Promise, non-thenable value to `Promise.resolve(..)`, you get a promise that's fulfilled with that value. In other words, these two promises `p1` and `p2` will behave basically identically:
+为什么这比只有回调更可信呢？我们如何确信*一些东西*就是可信的Promise呢？难道不是当我们信任时我们才会信任么？一个很重要却总是被忽视的一点是，它们对此问题有解决方案，ES6中原生的实现就是`Promise.resolve(..)`。如果你传递给`Promise.resolve(..)`一个即时、非Promise、非thenable值，你会得到一个以该值fulfilled的Promise，也就是说，下面`p1`和`p2`这两个promise的行为完全一样：
 
 ```js
 var p1 = new Promise( function(resolve,reject){
@@ -645,7 +639,7 @@ var p1 = new Promise( function(resolve,reject){
 var p2 = Promise.resolve( 42 );
 ```
 
-But if you pass a genuine Promise to `Promise.resolve(..)`, you just get the same promise back:
+而且，如果你给`Promise.resolve(..)`传递了一个Promise，那么你会得到完全一样的promise：
 
 ```js
 var p1 = Promise.resolve( 42 );
@@ -655,11 +649,9 @@ var p2 = Promise.resolve( p1 );
 p1 === p2; // true
 ```
 
-Even more importantly, if you pass a non-Promise thenable value to `Promise.resolve(..)`, it will attempt to unwrap that value, and the unwrapping will keep going until a concrete final non-Promise-like value is extracted.
+更重要的是，如果你给`Promise.resolve(..)`传递了一个非promise值，它会尝试拆包该值，并且拆包会一直进行下去，直到有一个非Promise的值出现。
 
-Recall our previous discussion of thenables?
-
-Consider:
+还记得前面关于thenable的讨论吗？思考：
 
 ```js
 var p = {
@@ -680,7 +672,7 @@ p
 );
 ```
 
-This `p` is a thenable, but it's not a genuine Promise. Luckily, it's reasonable, as most will be. But what if you got back instead something that looked like:
+这个`p`是thenable的，但它本质上并不是Promise，这很明显，但是如果下面这种呢：
 
 ```js
 var p = {
@@ -702,9 +694,9 @@ p
 );
 ```
 
-This `p` is a thenable but it's not so well behaved of a promise. Is it malicious? Or is it just ignorant of how Promises should work? It doesn't really matter, to be honest. In either case, it's not trustable as is.
+这个`p`也是thenable的，但是它的行为却和promise不同，这两个场景，都不是可信的。
 
-Nonetheless, we can pass either of these versions of `p` to `Promise.resolve(..)`, and we'll get the normalized, safe result we'd expect:
+尽管如此，我们仍然可以把这些版本的`p`传递给`Promise.resolve(..)`，这样就可以标准化它们，得到期望的安全结果：
 
 ```js
 Promise.resolve( p )
@@ -718,9 +710,9 @@ Promise.resolve( p )
 );
 ```
 
-`Promise.resolve(..)` will accept any thenable, and will unwrap it to its non-thenable value. But you get back from `Promise.resolve(..)` a real, genuine Promise in its place, **one that you can trust**. If what you passed in is already a genuine Promise, you just get it right back, so there's no downside at all to filtering through `Promise.resolve(..)` to gain trust.
+`Promise.resolve(..)`可以接受任何thenable的东西，然后拆包到它的非thenable的值，但你最后会从`Promise.resolve(..)`里得到一个真正的**一个你可以信任**的Promise。如果你传入的就是一个Promise，那么它会直接返回该Promise，所以没必要再通过`Promise.resolve(..)`来过滤以保证可信。
 
-So let's say we're calling a `foo(..)` utility and we're not sure we can trust its return value to be a well-behaving Promise, but we know it's at least a thenable. `Promise.resolve(..)` will give us a trustable Promise wrapper to chain off of:
+所以，如果当我们调用一个工具方法`foo(..)`，但我们不确定它是否会返回一个真正的Promise，但是我们确定它会返回一个thenable的东西，此时，`Promise.resolve(..)`会保证提供给我们一个Promise封装的东西，从而可以链调用。
 
 ```js
 // don't just do this:
@@ -736,28 +728,26 @@ Promise.resolve( foo( 42 ) )
 } );
 ```
 
-**Note:** Another beneficial side effect of wrapping `Promise.resolve(..)` around any function's return value (thenable or not) is that it's an easy way to normalize that function call into a well-behaving async task. If `foo(42)` returns an immediate value sometimes, or a Promise other times, `Promise.resolve( foo(42) )` makes sure it's always a Promise result. And avoiding Zalgo makes for much better code.
+**注意：**使用`Promise.resolve(..)`封装函数返回值还有另一个作用：它是将函数调用统一到表现良好的异步任务的一种简单方式。如果`foo(42)`有时返回一个即时值，有时一个Promise，`Promise.resolve( foo(42) )`保证它始终返回Promise，并且避免了Zalgo问题。
 
 ### Trust Built
 
-Hopefully the previous discussion now fully "resolves" (pun intended) in your mind why the Promise is trustable, and more importantly, why that trust is so critical in building robust, maintainable software.
+希望前面的讨论已经真正“resolve”了Promise之所以可信的原因，以及为何这种信任对建立强壮、可维护的软件至关重要。
 
-Can you write async code in JS without trust? Of course you can. We JS developers have been coding async with nothing but callbacks for nearly two decades.
+你能用JS写出不受信任的异步代码吗？当然可以，我们JS开发者二十多年来一直仅仅使用回调编写异步代码。但是当你开始怀疑这种机制的信任度、可预测性时，你开始意识到回调的根基是如此薄弱。
 
-But once you start questioning just how much you can trust the mechanisms you build upon to actually be predictable and reliable, you start to realize callbacks have a pretty shaky trust foundation.
-
-Promises are a pattern that augments callbacks with trustable semantics, so that the behavior is more reason-able and more reliable. By uninverting the *inversion of control* of callbacks, we place the control with a trustable system (Promises) that was designed specifically to bring sanity to our async.
+Promise通过信任语义增强了回调，所以它的行为更加合理和可靠。通过反转回调的*控制反转*，我们为控制投入了一个专为清晰异步的可信任系统（Promise）。
 
 ## Chain Flow
 
-We've hinted at this a couple of times already, but Promises are not just a mechanism for a single-step *this-then-that* sort of operation. That's the building block, of course, but it turns out we can string multiple Promises together to represent a sequence of async steps.
+我们已经提到过多次，Promise不是一个*this-then-that*的单步操作机制，那只是一个最小单元，我们可以使用链式方法来呈现一系列异步操作。
 
-The key to making this work is built on two behaviors intrinsic to Promises:
+这种能力基于Promise的两个特点：
 
-* Every time you call `then(..)` on a Promise, it creates and returns a new Promise, which we can *chain* with.
-* Whatever value you return from the `then(..)` call's fulfillment callback (the first parameter) is automatically set as the fulfillment of the *chained* Promise (from the first point).
+* 每当你调用一个Promise的`then(..)`方法，它会返回一个新的Promise，我们可以用来*链*调用。
+* 你在调用`then(..)`传入的fulfilled回调中返回的，都会自动的成为下一个*链*的fulfilled回调函数的入参。
 
-Let's first illustrate what that means, and *then* we'll derive how that helps us create async sequences of flow control. Consider the following:
+我们先解释下这两点是什么，然后我们会说明为何它们能帮助我们建立异步的流控制：
 
 ```js
 var p = Promise.resolve( 21 );
@@ -775,9 +765,7 @@ p2.then( function(v){
 } );
 ```
 
-By returning `v * 2` (i.e., `42`), we fulfill the `p2` promise that the first `then(..)` call created and returned. When `p2`'s `then(..)` call runs, it's receiving the fulfillment from the `return v * 2` statement. Of course, `p2.then(..)` creates yet another promise, which we could have stored in a `p3` variable.
-
-But it's a little annoying to have to create an intermediate variable `p2` (or `p3`, etc.). Thankfully, we can easily just chain these together:
+通过返回`v * 2`（即`42`），我们fulfill了`p2`这个promise（第一个`then(..)`创建以及返回），当`p2`的`then(..)`调用执行时，它得到了`return v * 2`语句的fulfillment，当然，`p2.then(..)`又创建了另一个promise，我们把它赋给了`p3`。这个比较麻烦，因为需要额外的创建变量`p2`（或`p3`等），庆幸的是，我们可以这么链式调用：
 
 ```js
 var p = Promise.resolve( 21 );
@@ -795,13 +783,13 @@ p
 } );
 ```
 
-So now the first `then(..)` is the first step in an async sequence, and the second `then(..)` is the second step. This could keep going for as long as you needed it to extend. Just keep chaining off a previous `then(..)` with each automatically created Promise.
+所以，第一个`then(..)`是异步序列的第一步，第二个第二步。这个只要你想，就可以一直持续下去，只需要简单的在前一个`then(..)`创建的promise上继续链式调用就行。
 
-But there's something missing here. What if we want step 2 to wait for step 1 to do something asynchronous? We're using an immediate `return` statement, which immediately fulfills the chained promise.
+但是别急，好像还差点儿什么。如果我们想要步骤2在步骤1进行异步处理时一直等待呢？我们使用立即`return`语句，它会立即fulfill这个promise链。
 
-The key to making a Promise sequence truly async capable at every step is to recall how `Promise.resolve(..)` operates when what you pass to it is a Promise or thenable instead of a final value. `Promise.resolve(..)` directly returns a received genuine Promise, or it unwraps the value of a received thenable -- and keeps going recursively while it keeps unwrapping thenables.
+使得Promise序列真正在每一步都有异步能力的是前面说过的`Promise.resolve(..)`操作，回忆下当你把Promise或者thenable而不是即时值传给它时它的处理。`Promise.resolve(..)`直接返回了一个接收到的Promise，或者拆包接收到的thenable——一只递归到出现即时值。
 
-The same sort of unwrapping happens if you `return` a thenable or Promise from the fulfillment (or rejection) handler. Consider:
+当你从fulfillment（或者rejection）里返回一个Promise或thenble时，同样的拆包也会发生，比如：
 
 ```js
 var p = Promise.resolve( 21 );
@@ -820,7 +808,7 @@ p.then( function(v){
 } );
 ```
 
-Even though we wrapped `42` up in a promise that we returned, it still got unwrapped and ended up as the resolution of the chained promise, such that the second `then(..)` still received `42`. If we introduce asynchrony to that wrapping promise, everything still nicely works the same:
+尽管我们把`42`封装到promise里来返回，在promise链调用里仍然被拆包了，这样，第二个`then(..)`仍然接收到`42`，如果我们引入异步操作，仍然没问题：
 
 ```js
 var p = Promise.resolve( 21 );
@@ -843,11 +831,11 @@ p.then( function(v){
 } );
 ```
 
-That's incredibly powerful! Now we can construct a sequence of however many async steps we want, and each step can delay the next step (or not!), as necessary.
+很好很强大，现在我们可以构建一个异步序列了，每一步都可以按需延迟下一步（也可以不延迟）。
 
-Of course, the value passing from step to step in these examples is optional. If you don't return an explicit value, an implicit `undefined` is assumed, and the promises still chain together the same way. Each Promise resolution is thus just a signal to proceed to the next step.
+当然，每一步到另一步的值传递是非必选的，如果你没有显式返回一个值，那么隐式的`undefined`会返回，而且各个promise之间的链关系仍然一样，每一个Promise的resolution是下一个步骤开始执行的标志。
 
-To further the chain illustration, let's generalize a delay-Promise creation (without resolution messages) into a utility we can reuse for multiple steps:
+为了更进一步说明，我们概括一个延迟Promise创建（没有resolution信息）为工具方法，我们可以重复使用它：
 
 ```js
 function delay(time) {
@@ -874,13 +862,13 @@ delay( 100 ) // step 1
 ...
 ```
 
+调用`delay(200)`创建一个200ms后fulfill的promise，然后我们从第一个`then(..)`的fulfillment回调里返回它，这样第二个`then(..)`的promise会等待这个200ms的promise。
 Calling `delay(200)` creates a promise that will fulfill in 200ms, and then we return that from the first `then(..)` fulfillment callback, which causes the second `then(..)`'s promise to wait on that 200ms promise.
 
-**Note:** As described, technically there are two promises in that interchange: the 200ms-delay promise and the chained promise that the second `then(..)` chains from. But you may find it easier to mentally combine these two promises together, because the Promise mechanism automatically merges their states for you. In that respect, you could think of `return delay(200)` as creating a promise that replaces the earlier-returned chained promise.
+**注意：** 如前面所描述的，严格说来，是有2个promise：200ms延迟promise以及第二个`then(..)`链接的promise。但你会发现把它们合在一起看待更自然，因为Promise机制会自动帮你合并它们的状态，这样，你可以把`return delay(200)`看作是创建一个替换前面返回的链promise的promise。
+ As described, technically there are two promises in that interchange: the 200ms-delay promise and the chained promise that the second `then(..)` chains from. But you may find it easier to mentally combine these two promises together, because the Promise mechanism automatically merges their states for you. In that respect, you could think of `return delay(200)` as creating a promise that replaces the earlier-returned chained promise.
 
-To be honest, though, sequences of delays with no message passing isn't a terribly useful example of Promise flow control. Let's look at a scenario that's a little more practical.
-
-Instead of timers, let's consider making Ajax requests:
+讲真，一系列没有信息传递的延迟并不是Promise流控制的常用场景，下面这个（Ajax请求）才是：
 
 ```js
 // assume an `ajax( {url}, {callback} )` utility
@@ -895,7 +883,7 @@ function request(url) {
 }
 ```
 
-We first define a `request(..)` utility that constructs a promise to represent the completion of the `ajax(..)` call:
+首先我们定义一个`request(..)`工具方法，它可以构造代表啊`ajax(..)`调用实现的promise：
 
 ```js
 request( "http://some.url.1/" )
@@ -907,15 +895,15 @@ request( "http://some.url.1/" )
 } );
 ```
 
-**Note:** Developers commonly encounter situations in which they want to do Promise-aware async flow control with utilities that are not themselves Promise-enabled (like `ajax(..)` here, which expects a callback). Although the native ES6 `Promise` mechanism doesn't automatically solve this pattern for us, practically all Promise libraries *do*. They usually call this process "lifting" or "promisifying" or some variation thereof. We'll come back to this technique later.
+**注意：** 开发者经常会遇到这样的场景：它们想要使用本身并不具备Promise能力的工具方法（比如这里的`ajax(..)`，它需要的是回调）来处理如Promise这样的异步流控制。尽管原生ES6里的`Promise`机制没有自动解决这个问题，但很多Promise库却做了。它们通常把这种处理叫做“lifting”或“promisifying”或其它变体，我们很快会讲到这个技术。
 
-Using the Promise-returning `request(..)`, we create the first step in our chain implicitly by calling it with the first URL, and chain off that returned promise with the first `then(..)`.
+使用`request(..)`这样的返回Promise的方法，我们通过使用第一个URL调用它来链的第一步，然后通过第一个`then(..)`返回的promise继续链接。
 
-Once `response1` comes back, we use that value to construct a second URL, and make a second `request(..)` call. That second `request(..)` promise is `return`ed so that the third step in our async flow control waits for that Ajax call to complete. Finally, we print `response2` once it returns.
+一旦`response1`返回，我们用这个值来构造第二个URL，然后生成第二个`request(..)`调用，第二个`request(..)`promise返回后，异步流控制的第三步等待Ajax调用完成，最终，当`response2`有值时，我们打印`response2`。
 
-The Promise chain we construct is not only a flow control that expresses a multistep async sequence, but it also acts as a message channel to propagate messages from step to step.
+我们构造的Promise链不仅仅是表示几个异步序列的流控制，它还称为信息通道，在每一步到另一步之间进行信息传递。
 
-What if something went wrong in one of the steps of the Promise chain? An error/exception is on a per-Promise basis, which means it's possible to catch such an error at any point in the chain, and that catching acts to sort of "reset" the chain back to normal operation at that point:
+那么如果在某一步中出现了问题呢？一个错误／异常也是Promise的，意味着我们可以在链的任何位置（【译者注：错误发生那一步的后面任意位置】捕获它，这种捕获类似于在该位置把链“重置”到正常的运行上：
 
 ```js
 // step 1:
@@ -946,12 +934,11 @@ request( "http://some.url.1/" )
 	console.log( msg );		// 42
 } );
 ```
+当第二步发生错误时，第三步的rejection处理程序会捕获它，其中返回的值（如果有的话，如上例的`42`），会fulfill下一步（第四步）的promise，这样promise链就又回到了了fulfillment状态。
 
-When the error occurs in step 2, the rejection handler in step 3 catches it. The return value (`42` in this snippet), if any, from that rejection handler fulfills the promise for the next step (4), such that the chain is now back in a fulfillment state.
+**注意：** 正如我们之前讨论的，当从fulfillment的处理程序例返回了一个promise时，它会被拆包，从而延迟下一步，这对于从rejection处理程序里返回promise也适用，这样的话，如果在第三步返回了promise而不是`return 42`，那么这个promise会延迟第四步，不论在rejection还是在fulfillment的`then(..)`调用里抛出的异常，都会导致下一个在链上的promise立即使用该异常被reject。
 
-**Note:** As we discussed earlier, when returning a promise from a fulfillment handler, it's unwrapped and can delay the next step. That's also true for returning promises from rejection handlers, such that if the `return 42` in step 3 instead returned a promise, that promise could delay step 4. A thrown exception inside either the fulfillment or rejection handler of a `then(..)` call causes the next (chained) promise to be immediately rejected with that exception.
-
-If you call `then(..)` on a promise, and you only pass a fulfillment handler to it, an assumed rejection handler is substituted:
+如果你调用一个promise的`then(..)`，而你只传入了一个fulfillment处理程序，一个假定的（即默认的）rejection处理程序会被替换：
 
 ```js
 var p = new Promise( function(resolve,reject){
@@ -970,11 +957,11 @@ var p2 = p.then(
 );
 ```
 
-As you can see, the assumed rejection handler simply rethrows the error, which ends up forcing `p2` (the chained promise) to reject with the same error reason. In essence, this allows the error to continue propagating along a Promise chain until an explicitly defined rejection handler is encountered.
+如你所见，这个假定的rejection处理程序只是简单的抛出错误，从而强制`p2`被同样的错误原因reject。本质上，这允许错误沿着Promise链一直传递下去直到遇见显式的定义了rejection处理程序。
 
-**Note:** We'll cover more details of error handling with Promises a little later, because there are other nuanced details to be concerned about.
+**注意：** 我们后面会更详细的讲解Promise的错误处理，因为还有一些需要专注的知识点。
 
-If a proper valid function is not passed as the fulfillment handler parameter to `then(..)`, there's also a default handler substituted:
+如果没有有效的函数作为fulfillment处理程序而传递给`then(..)`，也会有默认替代处理程序：
 
 ```js
 var p = Promise.resolve( 42 );
@@ -992,23 +979,22 @@ p.then(
 );
 ```
 
-As you can see, the default fulfillment handler simply passes whatever value it receives along to the next step (Promise).
+如你所见，默认的fulfillment处理程序只是简单的把接收的值继续传递给下一步（Promise）。
 
-**Note:** The `then(null,function(err){ .. })` pattern -- only handling rejections (if any) but letting fulfillments pass through -- has a shortcut in the API: `catch(function(err){ .. })`. We'll cover `catch(..)` more fully in the next section.
+**注意：** `then(null,function(err){ .. })`这种只处理错误（rejection）的模式，其实就是`catch(function(err){ .. })`的缩写，我们下一节会讲到。
 
 Let's review briefly the intrinsic behaviors of Promises that enable chaining flow control:
+我们稍微复习一下Promise实现流控制链的本质：
 
-* A `then(..)` call against one Promise automatically produces a new Promise to return from the call.
-* Inside the fulfillment/rejection handlers, if you return a value or an exception is thrown, the new returned (chainable) Promise is resolved accordingly.
-* If the fulfillment or rejection handler returns a Promise, it is unwrapped, so that whatever its resolution is will become the resolution of the chained Promise returned from the current `then(..)`.
+* 调用Promise的`then(..)`自动的（从调用程序里）创建新的Promise。
+* 在fulfillment／rejection处理程序里，无论返回了一个值还是抛出了一个异常，一个新创建的Promise会被相应（fulfillment／rejection）的resolve。
+* 如果fulfillment或rejection处理程序返回了一个Promise，它会被拆包，从而无论resolution是什么，都会成为`then(..)`返回的Promise的resolution。
 
-While chaining flow control is helpful, it's probably most accurate to think of it as a side benefit of how Promises compose (combine) together, rather than the main intent. As we've discussed in detail several times already, Promises normalize asynchrony and encapsulate time-dependent value state, and *that* is what lets us chain them together in this useful way.
-
-Certainly, the sequential expressiveness of the chain (this-then-this-then-this...) is a big improvement over the tangled mess of callbacks as we identified in Chapter 2. But there's still a fair amount of boilerplate (`then(..)` and `function(){ .. }`) to wade through. In the next chapter, we'll see a significantly nicer pattern for sequential flow control expressivity, with generators.
+尽管流控制链很有用，把它当作Promise组合在一起时的额外好处而不是主要特点更为精确。我们已经详细讨论好几次，Promise会标准化异步，然后封装时间相关的值状态，这样保证我们可以链式使用它们。
 
 ### Terminology: Resolve, Fulfill, and Reject
 
-There's some slight confusion around the terms "resolve," "fulfill," and "reject" that we need to clear up, before you get too much deeper into learning about Promises. Let's first consider the `Promise(..)` constructor:
+在深入Promise之前，几个关于“resolve”、“fulfill”、“reject”的困惑需要澄清，我们先看看`Promise(..)`构造器：
 
 ```js
 var p = new Promise( function(X,Y){
@@ -1017,17 +1003,17 @@ var p = new Promise( function(X,Y){
 } );
 ```
 
-As you can see, two callbacks (here labeled `X` and `Y`) are provided. The first is *usually* used to mark the Promise as fulfilled, and the second *always* marks the Promise as rejected. But what's the "usually" about, and what does that imply about accurately naming those parameters?
+可以看到它需要两个回调（这里的`X`和`Y`），第一个*一般*用来标示Promise被fulfill了，第二个标示被reject了。这里的*一般*指的是什么？精确的命名这些参数暗示着什么？
 
-Ultimately, it's just your user code and the identifier names aren't interpreted by the engine to mean anything, so it doesn't *technically* matter; `foo(..)` and `bar(..)` are equally functional. But the words you use can affect not only how you are thinking about the code, but how other developers on your team will think about it. Thinking wrongly about carefully orchestrated async code is almost surely going to be worse than the spaghetti-callback alternatives.
+其实，这些不过是你的代码，那些特别的名字对引擎来说没有任何意义，所以*严格来讲*（怎么命名）是无所谓的。`foo(..)`和`bar(..)`是相同的，但是单词不仅影响你思考代码，也会影响团队里的其他人，错误的思考一段异步代码明显比面条式的回调方式还要糟糕。
 
-So it actually does kind of matter what you call them.
+所以你怎么命名，还是很重要的。
 
-The second parameter is easy to decide. Almost all literature uses `reject(..)` as its name, and because that's exactly (and only!) what it does, that's a very good choice for the name. I'd strongly recommend you always use `reject(..)`.
+第二个参数很容易确定，几乎所有的语言都用`reject(..)`来命名，它也的确是那样子的，这个命名很给力，我强烈推荐你就使用`reject(..)`。
 
-But there's a little more ambiguity around the first parameter, which in Promise literature is often labeled `resolve(..)`. That word is obviously related to "resolution," which is what's used across the literature (including this book) to describe setting a final value/state to a Promise. We've already used "resolve the Promise" several times to mean either fulfilling or rejecting the Promise.
+但是对第一个参数却有些争议，Promise一般叫做`resolve(..)`，这个词明显代表着“resolution”，也是本书一直在使用的用来描述给Promise设置最终值／状态的叫法。我们已经多次使用“resolve the Promise”来表示fulfilling或者rejecting一个Promise了。
 
-But if this parameter seems to be used to specifically fulfill the Promise, why shouldn't we call it `fulfill(..)` instead of `resolve(..)` to be more accurate? To answer that question, let's also take a look at two of the `Promise` API methods:
+但是如果这个参数是用来表示fulfill了一个Promise，那么我们为什么不直接叫做`fulfill(..)`，却叫做`resolve(..)`呢？为了回答这个问题，我们先看2个`Promise`的API：
 
 ```js
 var fulfilledPr = Promise.resolve( 42 );
@@ -1035,9 +1021,9 @@ var fulfilledPr = Promise.resolve( 42 );
 var rejectedPr = Promise.reject( "Oops" );
 ```
 
-`Promise.resolve(..)` creates a Promise that's resolved to the value given to it. In this example, `42` is a normal, non-Promise, non-thenable value, so the fulfilled promise `fulfilledPr` is created for the value `42`. `Promise.reject("Oops")` creates the rejected promise `rejectedPr` for the reason `"Oops"`.
+`Promise.resolve(..)`创建一个resolve到给定值的Promise，在这个例子里，`42`是普通的非Promise以及非thenable的值，所以fulfilled的promise`fulfilledPr`为`42`创建，`Promise.reject("Oops")`创建一个原因为`"Oops"`的rejected promise`rejectedPr`。
 
-Let's now illustrate why the word "resolve" (such as in `Promise.resolve(..)`) is unambiguous and indeed more accurate, if used explicitly in a context that could result in either fulfillment or rejection:
+现在我来解释一下为何单词”resolve“（比如`Promise.resolve(..)`）是含糊却又更精确的，如果用于一个可以有fulfillment也可以有rejection结果的场景下：
 
 ```js
 var rejectedTh = {
@@ -1049,11 +1035,9 @@ var rejectedTh = {
 var rejectedPr = Promise.resolve( rejectedTh );
 ```
 
-As we discussed earlier in this chapter, `Promise.resolve(..)` will return a received genuine Promise directly, or unwrap a received thenable. If that thenable unwrapping reveals a rejected state, the Promise returned from `Promise.resolve(..)` is in fact in that same rejected state.
+`Promise.resolve(..)`会直接返回传入的Promise，或者拆包thenable，如果这个thenable拆包时发现它处于rejected状态，那么从`Promise.resolve(..)`返回的Promise也就会是rejected状态。所以，`Promise.resolve(..)`是一个良好的、精确命名的API方法，它实际上可以出现两种结果（fulfillment或rejection）。
 
-So `Promise.resolve(..)` is a good, accurate name for the API method, because it can actually result in either fulfillment or rejection.
-
-The first callback parameter of the `Promise(..)` constructor will unwrap either a thenable (identically to `Promise.resolve(..)`) or a genuine Promise:
+`Promise(..)`的第一个回调参数构造器会拆包thenable（同于`Promise.resolve(..)`），或者一个Promise：
 
 ```js
 var rejectedPr = new Promise( function(resolve,reject){
@@ -1071,11 +1055,11 @@ rejectedPr.then(
 );
 ```
 
-It should be clear now that `resolve(..)` is the appropriate name for the first callback parameter of the `Promise(..)` constructor.
+所以，`resolve(..)`这种命名作为`Promise(..)`的第一个回调参数是合适的。
 
-**Warning:** The previously mentioned `reject(..)` does **not** do the unwrapping that `resolve(..)` does. If you pass a Promise/thenable value to `reject(..)`, that untouched value will be set as the rejection reason. A subsequent rejection handler would receive the actual Promise/thenable you passed to `reject(..)`, not its underlying immediate value.
+**警告：** 前面提到的`reject(..)`**不会**像`resolve(..)`那样进行拆包，如果你给`reject(..)`传入了Promise或者thenable值，这个值会被作为rejection原因，后续的rejection处理程序会接收到这个值（而不是它封装的即时值）。
 
-But now let's turn our attention to the callbacks provided to `then(..)`. What should they be called (both in literature and in code)? I would suggest `fulfilled(..)` and `rejected(..)`:
+现在我们来看看`then(..)`，它们应该如何命名（字面上以及代码里）？我建议`fulfilled(..)`和`rejected(..)`：
 
 ```js
 function fulfilled(msg) {
@@ -1092,13 +1076,11 @@ p.then(
 );
 ```
 
-In the case of the first parameter to `then(..)`, it's unambiguously always the fulfillment case, so there's no need for the duality of "resolve" terminology. As a side note, the ES6 specification uses `onFulfilled(..)` and `onRejected(..)` to label these two callbacks, so they are accurate terms.
+传递给`then(..)`的第一个参数，它是单意义上的fulfillment，所以这里无需关注“resolve”这个术语，另外，ES6特性使用`onFulfilled(..)`和`onRejected(..)`来标记这两个回调，所以它们的命名是准确的。
 
 ## Error Handling
 
-We've already seen several examples of how Promise rejection -- either intentional through calling `reject(..)` or accidental through JS exceptions -- allows saner error handling in asynchronous programming. Let's circle back though and be explicit about some of the details that we glossed over.
-
-The most natural form of error handling for most developers is the synchronous `try..catch` construct. Unfortunately, it's synchronous-only, so it fails to help in async code patterns:
+我们已经见过好几种Promise的rejection示例了——比如直接调用`reject(..)`或者意外的JS异常，我们再回过头来看下更多的知识。开发者最熟悉的错误处理形式就是`try..catch`这种了，但是，它是同步的，所以在异步场景下没什么用：
 
 ```js
 function foo() {
@@ -1116,9 +1098,7 @@ catch (err) {
 }
 ```
 
-`try..catch` would certainly be nice to have, but it doesn't work across async operations. That is, unless there's some additional environmental support, which we'll come back to with generators in Chapter 4.
-
-In callbacks, some standards have emerged for patterned error handling, most notably the "error-first callback" style:
+`try..catch`很好用，但是不适用于异步操作。也就是说除非有外部环境支持，我们在第四章的generators里会讲。在回调中，一些错误处理模式的标准已经存在，最常见的形式就是“error-first callback”：
 
 ```js
 function foo(cb) {
@@ -1143,13 +1123,13 @@ foo( function(err,val){
 } );
 ```
 
-**Note:** The `try..catch` here works only from the perspective that the `baz.bar()` call will either succeed or fail immediately, synchronously. If `baz.bar()` was itself its own async completing function, any async errors inside it would not be catchable.
+**注意：** `try..catch`只有在`baz.bar()`即时的同步的成功或失败才有用，如果它本身是异步的，或者任何异步的，那么任何异步错误都无法被捕获。
 
-The callback we pass to `foo(..)` expects to receive a signal of an error by the reserved first parameter `err`. If present, error is assumed. If not, success is assumed.
+我们传递给`foo(..)`的回调期待接收一个由第一个参数`err`持有的错误信号，如果出现，那么就认为错误发生了，如果没有，就认为成功了。
 
-This sort of error handling is technically *async capable*, but it doesn't compose well at all. Multiple levels of error-first callbacks woven together with these ubiquitous `if` statement checks inevitably will lead you to the perils of callback hell (see Chapter 2).
+这种错误处理严格来讲是*异步的*，但是它设计的并不好，多个级别的error-first回调混在一起，使用这种`if`判断检查会让你陷入回调地狱（见第二章）。
 
-So we come back to error handling in Promises, with the rejection handler passed to `then(..)`. Promises don't use the popular "error-first callback" design style, but instead use "split callbacks" style; there's one callback for fulfillment and one for rejection:
+所以我们回到Promise的错误处理，借助传递给`then(..)`的rejection处理程序，Promise没有使用流行的“error-first”回调设计形式，而是使用“分离回调”形式，一个用于fulfillment的回调，一个用于rejection的回调：
 
 ```js
 var p = Promise.reject( "Oops" );
@@ -1164,9 +1144,7 @@ p.then(
 );
 ```
 
-While this pattern of error handling makes fine sense on the surface, the nuances of Promise error handling are often a fair bit more difficult to fully grasp.
-
-Consider:
+尽管这种模式的错误处理看起来没问题，但是Promise的错误处理实际上还是稍微有点儿要再次说明的地方：
 
 ```js
 var p = Promise.resolve( 42 );
@@ -1183,19 +1161,15 @@ p.then(
 );
 ```
 
-If the `msg.toLowerCase()` legitimately throws an error (it does!), why doesn't our error handler get notified? As we explained earlier, it's because *that* error handler is for the `p` promise, which has already been fulfilled with value `42`. The `p` promise is immutable, so the only promise that can be notified of the error is the one returned from `p.then(..)`, which in this case we don't capture.
+如果`msg.toLowerCase()`抛出了异常，为何我们的错误处理程序没有被通知到？我们前面已经解释过，因为*那个*错误处理程序是提供给`p`的，它已经被值`42`resolve了，`p`已经不可再修改，所以唯一可以被通知到错误的就是`p.then(..)`返回的promise，这个例子里我们没有捕获。
 
-That should paint a clear picture of why error handling with Promises is error-prone (pun intended). It's far too easy to have errors swallowed, as this is very rarely what you'd intend.
+这也就是为何Promise的异常处理容易被错误使用，太容易吞没错误了，这肯定不是你想要的。
 
-**Warning:** If you use the Promise API in an invalid way and an error occurs that prevents proper Promise construction, the result will be an immediately thrown exception, **not a rejected Promise**. Some examples of incorrect usage that fail Promise construction: `new Promise(null)`, `Promise.all()`, `Promise.race(42)`, and so on. You can't get a rejected Promise if you don't use the Promise API validly enough to actually construct a Promise in the first place!
+**警告：** 如果你非法使用Promise API，从而当Promise在被构造时发生了错误，那么会立即抛出异常，**而不是rejected Promise**，一些错误使用Promise构造的例子：`new Promise(null)`、`Promise.all()`、`Promise.race(42)`等。如果你没有正确的构造出Promise，那么你肯定无法有效使用它提供的API。
 
 ### Pit of Despair
 
-Jeff Atwood noted years ago: programming languages are often set up in such a way that by default, developers fall into the "pit of despair" (http://blog.codinghorror.com/falling-into-the-pit-of-success/) -- where accidents are punished -- and that you have to try harder to get it right. He implored us to instead create a "pit of success," where by default you fall into expected (successful) action, and thus would have to try hard to fail.
-
-Promise error handling is unquestionably "pit of despair" design. By default, it assumes that you want any error to be swallowed by the Promise state, and if you forget to observe that state, the error silently languishes/dies in obscurity -- usually despair.
-
-To avoid losing an error to the silence of a forgotten/discarded Promise, some developers have claimed that a "best practice" for Promise chains is to always end your chain with a final `catch(..)`, like:
+为了防止错误被吞没，开发者们提出了一个Promise链的“最佳实践”，总是使用`catch(..)`来结束链：
 
 ```js
 var p = Promise.resolve( 42 );
@@ -1210,27 +1184,21 @@ p.then(
 .catch( handleErrors );
 ```
 
-Because we didn't pass a rejection handler to the `then(..)`, the default handler was substituted, which simply propagates the error to the next promise in the chain. As such, both errors that come into `p`, and errors that come *after* `p` in its resolution (like the `msg.toLowerCase()` one) will filter down to the final `handleErrors(..)`.
+因为我们没有给`then(..)`传递一个rejection处理程序，默认的处理程序被替换，它只是简单的传递错误给下一个promise，从而，`p`中的错误，以及`p`的resolution中的错误（比如`msg.toLowerCase()`）都会进入到最终的`handleErrors(..)`。看起来好像问题解决了是吧？别急！
 
-Problem solved, right? Not so fast!
+如果`handleErrors(..)`本身发生了错误呢？谁来捕获这个错误？所以`catch(..)`返回的错误，我们没有捕获，也没有为它注册rejection的处理程序。肯定不能再加一个`catch(..)`来解决，它也可能会出现错误，无论怎样，总会有个无法处理的错误。
 
-What happens if `handleErrors(..)` itself also has an error in it? Who catches that? There's still yet another unattended promise: the one `catch(..)` returns, which we don't capture and don't register a rejection handler for.
-
-You can't just stick another `catch(..)` on the end of that chain, because it too could fail. The last step in any Promise chain, whatever it is, always has the possibility, even decreasingly so, of dangling with an uncaught error stuck inside an unobserved Promise.
-
-Sound like an impossible conundrum yet?
+看起来好像是个不能解的问题了。
 
 ### Uncaught Handling
 
-It's not exactly an easy problem to solve completely. There are other ways to approach it which many would say are *better*.
+的确不是一个容易解决的问题，但有其它的方法来逼近它，相对来讲*更好一些*。一些Promise库增加了“全局未处理rejection”处理程序，它会被调用而不是抛出全局的错误。但是如何识别一个错误是“未捕获”，它们一般通过一个任意长度的计时器，比如3秒，当rejection发生时开始计时，如果Promise被rejected了，但是在计时器启动前没有错误处理程序注册，那么它就假定你将不会注册处理程序，所以它是“未捕获”的。
 
-Some Promise libraries have added methods for registering something like a "global unhandled rejection" handler, which would be called instead of a globally thrown error. But their solution for how to identify an error as "uncaught" is to have an arbitrary-length timer, say 3 seconds, running from time of rejection. If a Promise is rejected but no error handler is registered before the timer fires, then it's assumed that you won't ever be registering a handler, so it's "uncaught."
+事实上，这种方式在很多库上运行良好，因为大多数的使用者不会大量延迟Promise的rejection和观测rejection。但是这种方式容易出现问题，因为3秒是一个任意的值（即使是经验值），而且在一些场景下，你想要一个Promise在rejectedness上保持特定的事件周期，你一定不想让你的“未捕获”程序处理来处理这些假阳性（还未处理的“未捕获错误”）的调用。
 
-In practice, this has worked well for many libraries, as most usage patterns don't typically call for significant delay between Promise rejection and observation of that rejection. But this pattern is troublesome because 3 seconds is so arbitrary (even if empirical), and also because there are indeed some cases where you want a Promise to hold on to its rejectedness for some indefinite period of time, and you don't really want to have your "uncaught" handler called for all those false positives (not-yet-handled "uncaught errors").
+另一个更普通的建议是，Promise应该在最后面加一个`done(..)`，这样可以保证promise链“完成”了，`done(..)`不会产生或者返回一个Promise，所以传递给`done(..)`的回调明显不会报告一个并不存在的Promise链的问题。
 
-Another more common suggestion is that Promises should have a `done(..)` added to them, which essentially marks the Promise chain as "done." `done(..)` doesn't create and return a Promise, so the callbacks passed to `done(..)` are obviously not wired up to report problems to a chained Promise that doesn't exist.
-
-So what happens instead? It's treated as you might usually expect in uncaught error conditions: any exception inside a `done(..)` rejection handler would be thrown as a global uncaught error (in the developer console, basically):
+那么会发生什么？它会像你在未捕获的错误条件下预期的一样：任何在`done(..)`rejection处理程序中的异常都会抛出一个全局未捕获错误（在开发者模式下的console里）。
 
 ```js
 var p = Promise.resolve( 42 );
@@ -1248,28 +1216,26 @@ p.then(
 // be thrown globally here
 ```
 
-This might sound more attractive than the never-ending chain or the arbitrary timeouts. But the biggest problem is that it's not part of the ES6 standard, so no matter how good it sounds, at best it's a lot longer way off from being a reliable and ubiquitous solution.
+这比从不结束的链或着任意超时看起来好一些，但是最大的问题是ES6标准并不支持，所以无论听起来多美好，它称为一个可靠的普遍的解决方案这条路还很长。
 
-Are we just stuck, then? Not entirely.
+我们就困到这里了嘛？并不。
 
-Browsers have a unique capability that our code does not have: they can track and know for sure when any object gets thrown away and garbage collected. So, browsers can track Promise objects, and whenever they get garbage collected, if they have a rejection in them, the browser knows for sure this was a legitimate "uncaught error," and can thus confidently know it should report it to the developer console.
+浏览器拥有我们代码不具备的能力：它们跟踪并且清楚对象在何时被抛弃，然后进行垃圾回收，所以，浏览器也可以跟踪Promise对象，每当有rejection出现，浏览器清楚的知道这是一个合法的“未捕获错误”，它们就开始垃圾回收，从而可以很确信它应该被报告给开发者console。
 
-**Note:** At the time of this writing, both Chrome and Firefox have early attempts at that sort of "uncaught rejection" capability, though support is incomplete at best.
+**注意：** 当写作此书时，Chrome和火狐都已经开始尝试这个”未捕获rejection“的能力，虽然还没有完美支持。
 
-However, if a Promise doesn't get garbage collected -- it's exceedingly easy for that to accidentally happen through lots of different coding patterns -- the browser's garbage collection sniffing won't help you know and diagnose that you have a silently rejected Promise laying around.
+然而，如果一个Promise没有被垃圾回收——在许多不同的编码模式里很容易出现，浏览器的垃圾回收嗅探无法帮你检测到静默的rejected Promise。
 
-Is there any other alternative? Yes.
+是否还有别的选择？是的。
 
 ### Pit of Success
 
-The following is just theoretical, how Promises *could* be someday changed to behave. I believe it would be far superior to what we currently have. And I think this change would be possible even post-ES6 because I don't think it would break web compatibility with ES6 Promises. Moreover, it can be polyfilled/prollyfilled in, if you're careful. Let's take a look:
+以下仅仅是一个理论，Promise未来*可能*会作出的改变。我相信它会是目前我们拥有的超集，而且我认为这个改变可能会是ES6之后的，因为我不认为它会破坏ES6 Promise的兼容性。而且，它可以被polyfilled，我们来看看：
 
-* Promises could default to reporting (to the developer console) any rejection, on the next Job or event loop tick, if at that exact moment no error handler has been registered for the Promise.
-* For the cases where you want a rejected Promise to hold onto its rejected state for an indefinite amount of time before observing, you could call `defer()`, which suppresses automatic error reporting on that Promise.
+* 当某个特定时刻，没有错误处理程序被注册给Promise，那么Promise默认可以在下一个作业或者事件轮询时刻，报告任何rejection（给开发者console）。
+* 为了让你可以在一定时间内保持某个被rejected的Promise的rejected状态，你可以调用`defer()`，它会抑制Promise的自动报告错误。
 
-If a Promise is rejected, it defaults to noisily reporting that fact to the developer console (instead of defaulting to silence). You can opt out of that reporting either implicitly (by registering an error handler before rejection), or explicitly (with `defer()`). In either case, *you* control the false positives.
-
-Consider:
+如果某个Promise被rejected，它默认会报告给开发者console（而不是默认静默）。你可以隐式的处理（在rejection之前注册一个错误处理程序），或者显式的处理（使用`defer()`），无论哪种情况，你都可以控制假阳性问题。
 
 ```js
 var p = Promise.reject( "Oops" ).defer();
@@ -1287,37 +1253,27 @@ foo( 42 )
 ...
 ```
 
-When we create `p`, we know we're going to wait a while to use/observe its rejection, so we call `defer()` -- thus no global reporting. `defer()` simply returns the same promise, for chaining purposes.
+当我们创建`p`时，我们知道我们将会在使用／观测它的rejection之前等待一会儿，所以我们叫做`defer()`（不会有全局通知）。`defer()`只是返回相同的promise，为了链式使用。
 
-The promise returned from `foo(..)` gets an error handler attached *right away*, so it's implicitly opted out and no global reporting for it occurs either.
+从`foo(..)`返回的promise立即得到一个错误处理程序，所以它隐式的退出并且不会有全局通知。但是从`then(..)`调用返回的promise没有`defer()`或者附加的错误处理程序，所以如果它（从任何一个resolution处理程序里）reject的话，它会被当作未捕获的错误报告给开发者console。
 
-But the promise returned from the `then(..)` call has no `defer()` or error handler attached, so if it rejects (from inside either resolution handler), then *it* will be reported to the developer console as an uncaught error.
+**这个设计是pit of success。**默认情况下，所有的错误不是被处理就是被报告，几乎所有开发者在任何场景都可以预料的。你要么不得不注册一个处理程序要么直接退出，并表明你会在*后来*处理错误，你选择特殊情况下额外负责。
 
-**This design is a pit of success.** By default, all errors are either handled or reported -- what almost all developers in almost all cases would expect. You either have to register a handler or you have to intentionally opt out, and indicate you intend to defer error handling until *later*; you're opting for the extra responsibility in just that specific case.
+这种方式真正危险的是如果你`defer()`了一个promise，但是无法观测／处理它的rejection。你可能会故意调用`defer()`来选择pit of despair，默认的是pit of success，这样的话我们也无法把你从自己的错误里拯救出来。
 
-The only real danger in this approach is if you `defer()` a Promise but then fail to actually ever observe/handle its rejection.
+我认为Promise的错误处理还是值的期待的（post-ES6），我希望相关人能够考虑这种场景以及这个选择。同时，你也可以自己实现，或者使用更*smarter*的Promise库来替你做到这些。
 
-But you had to intentionally call `defer()` to opt into that pit of despair -- the default was the pit of success -- so there's not much else we could do to save you from your own mistakes.
-
-I think there's still hope for Promise error handling (post-ES6). I hope the powers that be will rethink the situation and consider this alternative. In the meantime, you can implement this yourself (a challenging exercise for the reader!), or use a *smarter* Promise library that does so for you!
-
-**Note:** This exact model for error handling/reporting is implemented in my *asynquence* Promise abstraction library, which will be discussed in Appendix A of this book.
+**注意：** 这个确切的错误处理／报告模型在我的*asyncqueue*Promise抽象库里被实现了，你可以在附录A里看到更多关于它的信息。
 
 ## Promise Patterns
 
-We've already implicitly seen the sequence pattern with Promise chains (this-then-this-then-that flow control) but there are lots of variations on asynchronous patterns that we can build as abstractions on top of Promises. These patterns serve to simplify the expression of async flow control -- which helps make our code more reason-able and more maintainable -- even in the most complex parts of our programs.
-
-Two such patterns are codified directly into the native ES6 `Promise` implementation, so we get them for free, to use as building blocks for other patterns.
-
 ### Promise.all([ .. ])
 
-In an async sequence (Promise chain), only one async task is being coordinated at any given moment -- step 2 strictly follows step 1, and step 3 strictly follows step 2. But what about doing two or more steps concurrently (aka "in parallel")?
+在异步序列（Promise链）中，某一时刻只会有一个异步任务在执行，第二步始终会在第一步后，第三步严格在第二步后，但是如果我们想要多个步骤并发（即“并行”）呢？
 
-In classic programming terminology, a "gate" is a mechanism that waits on two or more parallel/concurrent tasks to complete before continuing. It doesn't matter what order they finish in, just that all of them have to complete for the gate to open and let the flow control through.
+在传统编程术语中，“门”指的是一个等待两个或多个并行／并发任务的完成，它不关注它们的完成顺序，只关注是否所有的都已经完成，从而可以开门放行，在Promise的API中，这种模式叫做`all([..])`。
 
-In the Promise API, we call this pattern `all([ .. ])`.
-
-Say you wanted to make two Ajax requests at the same time, and wait for both to finish, regardless of their order, before making a third Ajax request. Consider:
+假设你想要同时发送两个Ajax请求，然后等它们都完成，不在乎它们的顺序，然后再发送第三个Ajax请求：
 
 ```js
 // `request(..)` is a Promise-aware Ajax utility,
@@ -1339,21 +1295,19 @@ Promise.all( [p1,p2] )
 } );
 ```
 
-`Promise.all([ .. ])` expects a single argument, an `array`, consisting generally of Promise instances. The promise returned from the `Promise.all([ .. ])` call will receive a fulfillment message (`msgs` in this snippet) that is an `array` of all the fulfillment messages from the passed in promises, in the same order as specified (regardless of fulfillment order).
+`Promise.all([ .. ])`的入参是Promise实例组成的数组，返回是对应顺序的fulfillment信息数据。
 
-**Note:** Technically, the `array` of values passed into `Promise.all([ .. ])` can include Promises, thenables, or even immediate values. Each value in the list is essentially passed through `Promise.resolve(..)` to make sure it's a genuine Promise to be waited on, so an immediate value will just be normalized into a Promise for that value. If the `array` is empty, the main Promise is immediately fulfilled.
+**注意：** 严格来讲，入参数据中可以是Promise、thenable、即时值，每一个值都会通过`Promise.resolve(..)`，从而确保它最终是一个Promise，如果传入的是一个空数组，那么主Promise会立即fulfill。
 
-The main promise returned from `Promise.all([ .. ])` will only be fulfilled if and when all its constituent promises are fulfilled. If any one of those promises instead is rejected, the main `Promise.all([ .. ])` promise is immediately rejected, discarding all results from any other promises.
+`Promise.all([ .. ])`返回的主promise只有当所有的入参promise都被fulfill了才会fulfill，如果任何一个被rejected，那么主promise会立即rejected，并丢弃其它promise返回的结果。
 
-Remember to always attach a rejection/error handler to every promise, even and especially the one that comes back from `Promise.all([ .. ])`.
+记得给每一个promise添加rejection／error处理程序，尤其是从`Promise.all([ .. ])`返回的。
 
 ### Promise.race([ .. ])
 
-While `Promise.all([ .. ])` coordinates multiple Promises concurrently and assumes all are needed for fulfillment, sometimes you only want to respond to the "first Promise to cross the finish line," letting the other Promises fall away.
+`Promise.all([ .. ])`要求所有的promise都fulfill然后它才会fulfill，而`Promise.race([ .. ])`只要有一个fulfill它就会fulfil。
 
-This pattern is classically called a "latch," but in Promises it's called a "race."
-
-**Warning:** While the metaphor of "only the first across the finish line wins" fits the behavior well, unfortunately "race" is kind of a loaded term, because "race conditions" are generally taken as bugs in programs (see Chapter 1). Don't confuse `Promise.race([ .. ])` with "race condition."
+**警告：** 不要把“静态条件”和`Promise.race([ .. ])`搞混了。
 
 `Promise.race([ .. ])` also expects a single `array` argument, containing one or more Promises, thenables, or immediate values. It doesn't make much practical sense to have a race with immediate values, because the first one listed will obviously win -- like a foot race where one runner starts at the finish line!
 
