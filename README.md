@@ -84,3 +84,7 @@ JS的变量没有类型，变量持有的值才有类型。
 > 我们需要一个通用于**所有信任问题**的解决方案，一个可以被许多回调重用而不需要再在开头创建引用的方案。
 >
 > 我们需要一些比回调更优雅的东西，虽然回调已广泛服务于大家，但是JS的*未来*呼吁更成熟和强大的异步模式。
+
+### [Chapter 3: Promises](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/async%20%26%20performance/ch3.md)
+
+>
