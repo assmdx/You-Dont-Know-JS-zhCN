@@ -23,6 +23,16 @@ JS的变量没有类型，变量持有的值才有类型。
 
 ### [Chapter 2: Values](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch2.md)
 
+> 在JS里，`array` 是数字索引的任何值类型的集合，`string` 虽然有些像 `array`，但它们还是有区别的，所以当你把它用作数组时一定要小心。JS中的数字包括整数和浮点数。
+>
+> 几个特殊的值是基础类型。
+>
+> `null` 类型有自己的值 `null`， `undefined` 也是，`undefined` 是当变量或属性没有其它值时的默认值，`void` 操作符让你可以用任何值生成 `undefined`值。
+>
+> `number` 中有几个特殊值，比如 `NaN`（说的不是「非数」，而是「非法数字」），`+Infinity`、`-Infinity`、`-0`。
+>
+> 简单的基础值（`string`、`number` 等）是值拷贝来传递、赋值的，而符合值（`object` 等）则是引用拷贝传递／赋值的。引用不像其它语言里的引用／指针，它们不会指向其它变量／引用，只会指向真实的值。
+
 ### [Chapter 3: Natives](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch3.md)
 
 ### [Chapter 4: Coercion](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/types%20%26%20grammar/ch4.md)
