@@ -842,7 +842,7 @@ A program can effectively use both styles of code (lexical and `this`), but insi
 
 1. 由`new`调用，`this`就是新构造的对象。
 2. 由`call`或`apply`调用，或者由`bind`调用，`this`则是显式指定的对象。
-3. 通过上下文调用，或者函数本身就是对象持有的属性，么`this`就是这个上下文对象。
+3. 通过上下文调用，或者函数本身就是对象持有的属性，那么`this`就是这个上下文对象。
 4. 否则，`this`是默认绑定，在严格模式下取`undefined`，其它取`global`对象。
 
 Be careful of accidental/unintentional invoking of the *default binding* rule. In cases where you want to "safely" ignore a `this` binding, a "DMZ" object like `ø = Object.create(null)` is a good placeholder value that protects the `global` object from unintended side-effects.

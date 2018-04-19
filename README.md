@@ -1,5 +1,5 @@
 # You-Dont-Know-JS-zhCN
-[zh-CN] translation of "You Dont Know JS", original: https://github.com/getify/You-Dont-Know-JS
+[zh-CN] ~~translation~~ notes（原作者废话太多，不翻译了，只记笔记 :sob:） of "You Dont Know JS", original: https://github.com/getify/You-Dont-Know-JS
 
 -----
 **Personal Study Use Only, 仅供个人学习使用。**
@@ -59,7 +59,7 @@ JS的变量没有类型，变量持有的值才有类型。
 > 
 > 1. 由`new`调用，`this`就是新构造的对象。
 > 2. 由`call`或`apply`调用，或者由`bind`调用，`this`则是显式指定的对象。
-> 3. 通过上下文调用，或者函数本身就是对象持有的属性，么`this`就是这个上下文对象。
+> 3. 通过上下文调用，或者函数本身就是对象持有的属性，那么`this`就是这个上下文对象。
 > 4. 否则，`this`是默认绑定，在严格模式下取`undefined`，其它取`global`对象。
 
 ### [Chapter 4: Mixing (Up) "Class" Objects](https://github.com/NoName4Me/You-Dont-Know-JS-zhCN/blob/master/this%20%26%20object%20prototypes/ch4.md)

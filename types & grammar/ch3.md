@@ -1,7 +1,6 @@
 # You Don't Know JS: Types & Grammar
 # Chapter 3: Natives
 
-
 在1、2章中我们几次提到不同的内置函数，也称"natives"，像`String`和`Number`，下面我们来详细学习。
 
 常用的几个natives:
@@ -18,6 +17,7 @@
 * `Symbol()` -- added in ES6!
 
 如果你是从其它如Java语言转过来的，那么JS的`String()`就和你所习惯的`String(..)`构造器创建字符串值一些，如此，你会发现你可以这样做：
+
 ```js
 var s = new String( "Hello World!" );
 
