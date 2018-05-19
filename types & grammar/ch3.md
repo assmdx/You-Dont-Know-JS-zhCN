@@ -35,6 +35,7 @@ a instanceof String; // true
 
 Object.prototype.toString.call( a ); // "[object String]"
 ```
+
 通过构造器创建值(`new String('abs')`)相当于一个对基本值的对象封装。
 
 `typeof`说明这些对象并不是它们本身特殊的 *类型* ，而是`object`的子类型。
@@ -44,6 +45,7 @@ Object.prototype.toString.call( a ); // "[object String]"
 ```js
 console.log( a );
 ```
+
 这条语句的的输出随浏览器不同而不同，因为console针对对象的序列化没有统一标准，只是为了方便开发者查看。
 
 **注意:** 写作当时，最新版的Chrome会打印`String {0: "a", 1: "b", 2: "c", length: 3, [[PrimitiveValue]]: "abc"}`这样的结果，但是旧版本的Chrome可能会打印`String {0: "a", 1: "b", 2: "c"}`。最新版火狐浏览器打印`String ["a","b","c"]`，但以前会打印斜体的`"abc"`，点击后可以打开审查窗口，当然这些都会或可能已经改变了。
@@ -59,6 +61,7 @@ Object.prototype.toString.call( [1,2,3] );			// "[object Array]"
 
 Object.prototype.toString.call( /regex-literal/i );	// "[object RegExp]"
 ```
+
 示例中数组的内部`[[Class]]`值是`'Array'`，正则表达式是`'RegExp'`，大多数情况下，内部`[[Class]]`值对应着与值相关的native构造器，但总有例外。
 
 比如基本值，`null`和`undefined`：
@@ -77,6 +80,7 @@ Object.prototype.toString.call( "abc" );	// "[object String]"
 Object.prototype.toString.call( 42 );		// "[object Number]"
 Object.prototype.toString.call( true );		// "[object Boolean]"
 ```
+
 这段代码里，每一个基本值都被自动装箱为它们各自的对象封装器，这就是为何它们的内部`[[Class]]`分别是`"String"`、`"Number"`、 `"Boolean"`。
 
 **注意:** 这里的`toString()` 和 `[[Class]]`行为从ES5到ES6有一些变化，会在卷 *ES6 & Beyond* 中详述。
@@ -91,6 +95,7 @@ var a = "abc";
 a.length; // 3
 a.toUpperCase(); // "ABC"
 ```
+
 所以，如果你想通过字符串值来访问属性或方法，比如在`for`循环的条件`i < a.length`，可能你会觉的一开始就使用对象形式，这样JS引擎就不再需要隐式的为你生成。
 
 但是，这种想法很糟糕。浏览器很早以前就对如`.length`这些常见情况进行了性能优化，如果你尝试上面的直接使用对象形式的“预优化”，你的程序反倒会*变慢*。
@@ -181,7 +186,7 @@ b; // [1, 2, 3]
 
 更重要的是，根本不存在重新设置数组大小，实际情况是，你创建了一个空数组，然后设置了`length`属性值为特定的数字。
 
-一个槽内没有特定值的数组，但却有`length`属性*暗示*槽是存在的，这种数据结构在JS中的行为很奇葩。能创建这种值，完全因为旧的已经弃用的历史的功能。（与a`rgument`类似的“类数组对象“）。
+一个槽内没有特定值的数组，但却有`length`属性*暗示*槽是存在的，这种数据结构在JS中的行为很奇葩。能创建这种值，完全因为旧的已经弃用的历史的功能。（与`argument`类似的“类数组对象“）。
 
 **注意：** 一个包含至少一个空槽的数组称为“松散数组”。
 
@@ -194,7 +199,7 @@ For example:
 var a = new Array( 3 );
 
 a.length; // 3
-a;
+a; // [empty × 3]
 ```
 
 The serialization of `a` in Chrome is (at the time of writing): `[ undefined x 3 ]`. **This is really unfortunate.** It implies that there are three `undefined` values in the slots of this array, when in fact the slots do not exist (so-called "empty slots" -- also a bad name!).
