@@ -1,5 +1,5 @@
 # You-Dont-Know-JS-zhCN
-[zh-CN] ~~translation~~ notes（原作者废话太多，不翻译了，只记笔记 :sob:） of "You Dont Know JS", original: https://github.com/getify/You-Dont-Know-JS
+[zh-CN] translation of "You Dont Know JS", original: https://github.com/getify/You-Dont-Know-JS
 
 -----
 **Personal Study Use Only, 仅供个人学习使用。**

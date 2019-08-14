@@ -191,9 +191,9 @@ b; // [1, 2, 3]
 **注意：** 一个包含至少一个空槽的数组称为“松散数组”。
 
 
-It doesn't help matters that this is yet another example where browser developer consoles vary on how they represent such an object, which breeds more confusion.
+这是另一个例子，浏览器开发者控制台在如何表示这样一个对象方面存在差异，这会产生更多的混淆。
 
-For example:
+例如:
 
 ```js
 var a = new Array( 3 );
@@ -202,9 +202,9 @@ a.length; // 3
 a; // [empty × 3]
 ```
 
-The serialization of `a` in Chrome is (at the time of writing): `[ undefined x 3 ]`. **This is really unfortunate.** It implies that there are three `undefined` values in the slots of this array, when in fact the slots do not exist (so-called "empty slots" -- also a bad name!).
+在chrome中a是这样显示的: `[ undefined x 3 ]`. **这真的很不幸.这表示数组的三个槽中有undefined,然而实际上槽里面什么都没有(所以把它称为空槽也是不合适的!).
 
-To visualize the difference, try this:
+如果要看到其中的差异，可以尝试以下代码：
 
 ```js
 var a = new Array( 3 );
@@ -217,13 +217,13 @@ b;
 c;
 ```
 
-**Note:** As you can see with `c` in this example, empty slots in an array can happen after creation of the array. Changing the `length` of an array to go beyond its number of actually-defined slot values, you implicitly introduce empty slots. In fact, you could even call `delete b[1]` in the above snippet, and it would introduce an empty slot into the middle of `b`.
+**注意:** 就像这个例子中的c, 在数组创建后，出现空槽（empty）的现象是有可能发生的. 当你改变数组的大小，使得数组的大小超过它拥有的值时，会额外产生一些空槽. 实际上,在上面例子的基础上，你可以 `delete b[1]` ，这样会使得 `b`的中间出现一个空槽.
 
-For `b` (in Chrome, currently), you'll find `[ undefined, undefined, undefined ]` as the serialization, as opposed to `[ undefined x 3 ]` for `a` and `c`. Confused? Yeah, so is everyone else.
+对于b（在现在的chrom中），你会发现它的值是[ undefined, undefined, undefined ],而a和c却不是 `[ undefined x 3 ]` 。困惑吗？是的，所有的浏览器都是这样。
 
-Worse than that, at the time of writing, Firefox reports `[ , , , ]` for `a` and `c`. Did you catch why that's so confusing? Look closely. Three commas implies four slots, not three slots like we'd expect.
+比那更糟糕的是，在火狐中我们这样写时，a和c会显示 `[ , , , ]`. 你发现令人困惑的地方了吗？仔细看看. 3个逗号隐含4个空槽而不是我们认为的3个。（这里笔者测试是显示的两个逗号==）
 
-**What!?** Firefox puts an extra `,` on the end of their serialization here because as of ES5, trailing commas in lists (array values, property lists, etc.) are allowed (and thus dropped and ignored). So if you were to type in a `[ , , , ]` value into your program or the console, you'd actually get the underlying value that's like `[ , , ]` (that is, an array with three empty slots). This choice, while confusing if reading the developer console, is defended as instead making copy-n-paste behavior accurate.
+**什么?** 火狐额外添加了一个 `,` on the end of their serialization here because as of ES5, trailing commas in lists (array values, property lists, etc.) are allowed (and thus dropped and ignored). So if you were to type in a `[ , , , ]` value into your program or the console, you'd actually get the underlying value that's like `[ , , ]` (that is, an array with three empty slots). This choice, while confusing if reading the developer console, is defended as instead making copy-n-paste behavior accurate.
 
 If you're shaking your head or rolling your eyes about now, you're not alone! Shrugs.
 
